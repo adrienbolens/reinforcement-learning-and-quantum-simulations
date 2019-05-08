@@ -3,7 +3,9 @@ import json
 
 #  output = Path(__file__).parent / 'output'
 output = Path('/data3/bolensadrien/output')
-database_path = output / 'database.json'
+result_processing = Path('/home/bolensadrien/Documents/RL/result_processing')
+#  database_path = output / 'database.json'
+database_path = result_processing / 'database.json'
 
 if not database_path.exists():
     print(f'No database.json found in {output}.')
