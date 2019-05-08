@@ -1,0 +1,145 @@
+[
+  {
+    "name": "19_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:28:32.519725"
+  },
+  {
+    "name": "20_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:28:32.559176"
+  },
+  {
+    "name": "22_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:28:33.054799"
+  },
+  {
+    "name": "23_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:28:33.097081"
+  },
+  {
+    "name": "27_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:29:05.950354"
+  },
+  {
+    "name": "28_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:29:05.992089"
+  },
+  {
+    "name": "29_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:29:06.031347"
+  },
+  {
+    "name": "30_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:29:06.139648"
+  },
+  {
+    "name": "21_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:28:32.598121",
+    "raw_files_exist": false
+  },
+  {
+    "name": "18_q_learning",
+    "status": "processed",
+    "raw_files_exist": false,
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:28:32.480828"
+  },
+  {
+    "name": "24_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:28:33.139227",
+    "raw_files_exist": false
+  },
+  {
+    "name": "17_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 88,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:28:32.420841",
+    "raw_files_exist": false
+  },
+  {
+    "name": "26_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 88,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:29:05.882506",
+    "raw_files_exist": false
+  },
+  {
+    "name": "31_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 93,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-04 21:29:06.184324",
+    "raw_files_exist": false
+  },
+  {
+    "name": "32_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-05 21:39:36.718120",
+    "raw_files_exist": false
+  },
+  {
+    "name": "33_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-05 21:39:36.763640",
+    "raw_files_exist": false
+  },
+  {
+    "name": "35_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-07 18:00:19.503551",
+    "raw_files_exist": false
+  },
+  {
+    "name": "36_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-07 18:00:19.550671",
+    "raw_files_exist": false
+  },
+  {
+    "name": "37_q_learning",
+    "status": "running",
+    "n_completed_tasks": 0,
+    "n_submitted_tasks": 1000,
+    "submission_date": "2019-05-08 13:32:52.026079"
+  }
+]
