@@ -67,11 +67,12 @@ def submit_to_slurm(params):
         #  "partition": "short",
         "job-name": f'{job_index}_{file_name}',
         #  "time": "4-00:00:00",
-        "time": "24:00:00",
-        #  "time": "2:00:00",
+        "time": "48:00:00",
+        #  "time": "0:30:00",
         #  "mail-type": "END",
         #  "mem-per-cpu": "50000",
         "mem-per-cpu": "20000",
+        #  "mem-per-cpu": "2000",
         "o": job_path / "slurm-%a.out"
     }
 

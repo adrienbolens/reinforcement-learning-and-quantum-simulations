@@ -37,8 +37,8 @@ parameters = {
 
 
     # q_learning parameters:
-    'n_episodes': int(1e5),
-    #  'n_episodes': 10,
+    'n_episodes': int(1e4),
+    #  'n_episodes': 50,
     'learning_rate': 0.618,
     'epsilon_max': 1.0,
     'epsilon_min': 0.005,
@@ -54,7 +54,8 @@ parameters = {
     'optimization_method': 'NAG',
     'GD_eta': 0.6,
     'GD_gamma': 0.9,
-    'range_one': math.pi
+    'range_one': math.pi,
+    'n_initial_actions': 11
 }
 #  epsilon_decay is such that epsilon_min is reached after pp*100% of the
 #  episodes

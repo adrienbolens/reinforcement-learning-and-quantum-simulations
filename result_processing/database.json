@@ -204,20 +204,34 @@
     "status": "running",
     "n_completed_tasks": 0,
     "n_submitted_tasks": 2,
-    "submission_date": "2019-05-17 17:26:09.621719"
+    "submission_date": "2019-05-20 12:27:28.998925"
   },
   {
     "name": "47_deep_q_learning",
     "status": "running",
     "n_completed_tasks": 0,
     "n_submitted_tasks": 2,
-    "submission_date": "2019-05-17 17:27:32.369366"
+    "submission_date": "2019-05-20 12:27:33.890761"
   },
   {
     "name": "48_deep_q_learning",
     "status": "running",
     "n_completed_tasks": 0,
     "n_submitted_tasks": 2,
-    "submission_date": "2019-05-17 17:27:36.885162"
+    "submission_date": "2019-05-20 12:27:37.616931"
+  },
+  {
+    "name": "49_deep_q_learning",
+    "status": "running",
+    "n_completed_tasks": 0,
+    "n_submitted_tasks": 2,
+    "submission_date": "2019-05-20 12:27:42.323936"
+  },
+  {
+    "name": "50_deep_q_learning",
+    "status": "running",
+    "n_completed_tasks": 0,
+    "n_submitted_tasks": 2,
+    "submission_date": "2019-05-20 12:27:46.838503"
   }
 ]

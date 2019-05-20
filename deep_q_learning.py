@@ -27,6 +27,7 @@ class DeepQLearning(object):
                  optimization_method='NAG',
                  GD_eta=0.6,
                  GD_gamma=0.9,
+                 n_initial_actions=5,
                  tf_seed=None,
                  seed=None,
                  **other_params
@@ -42,6 +43,8 @@ class DeepQLearning(object):
         self.optimization_method = optimization_method
         self.GD_eta = GD_eta
         self.GD_gamma = GD_gamma
+        self.n_initial_actions = n_initial_actions
+        print("self.n_initial_actions = ", self.n_initial_actions)
         if tf_seed is None:
             tf_seed = seed
 
@@ -243,7 +246,8 @@ class DeepQLearning(object):
                   f'epsilon: {self.current_episode:.2f}')
         return total_reward
 
-    def get_best_action(self, state, use_target=False, n_initial_actions=3,
+    def get_best_action(self, state, use_target=False,
+                        #  n_initial_actions=7,
                         n_iters=15, convergence_threshold=0.001):
         #  newton method for the function
         #  a -> model.predict(process_state_action(next_state, a))
@@ -254,7 +258,7 @@ class DeepQLearning(object):
 
         state = self.env.process_state_action(state)
         #  print(f'the state is {state}.')
-        a0 = np.linspace(-0.1, 0.1, num=n_initial_actions, endpoint=True)
+        a0 = np.linspace(-1, 1, num=self.n_initial_actions, endpoint=True)
         initial_a = [np.full(self.env.action_len, a) for a in a0]
         q_max = 0
         for i, a in enumerate(initial_a):
@@ -388,9 +392,11 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         array_index = 1
         create_output_files = False
+        print("Output files won't be created.")
     else:
         array_index = int(sys.argv[1])
         create_output_files = True
+        print("Output files will be created.")
 
     print(f"Array n. {array_index}")
     seed_qlearning = array_index
