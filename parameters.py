@@ -21,6 +21,7 @@ parameters = {
         'g': 2.0,
         'h': 2.0
     },
+
     'seed_initial_state': 42,
     #  always choose even to allow for identity gate
     #  Not anymore (from 0 to 2pi instead of -pi to pi)
