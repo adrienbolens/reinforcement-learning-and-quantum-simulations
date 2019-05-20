@@ -117,7 +117,8 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
     #  )
 
     xs = 0.5*(bins[1:] + bins[:-1])
-    colors = sns.color_palette("hls", n_slices)
+    #  colors = sns.color_palette("hls", n_slices)
+    colors = sns.color_palette("coolwarm", n_slices)
     for i in range(n_slices):
         ax0.plot(xs, probs[i], color=colors[i],
                  label=r'$t = {}$'.format(slice_episodes[i]))

@@ -137,9 +137,87 @@
   },
   {
     "name": "37_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 866,
+    "n_submitted_tasks": 1000,
+    "submission_date": "2019-05-08 13:32:52.026079",
+    "raw_files_exist": false
+  },
+  {
+    "name": "39_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 1000,
+    "n_submitted_tasks": 1000,
+    "submission_date": "2019-05-09 09:49:45.829766",
+    "raw_files_exist": false
+  },
+  {
+    "name": "40_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 1000,
+    "n_submitted_tasks": 1000,
+    "submission_date": "2019-05-09 09:58:55.282235",
+    "raw_files_exist": false
+  },
+  {
+    "name": "41_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-10 10:03:09.259903",
+    "raw_files_exist": false
+  },
+  {
+    "name": "43_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 1000,
+    "n_submitted_tasks": 1000,
+    "submission_date": "2019-05-10 12:25:54.529207",
+    "raw_files_exist": false
+  },
+  {
+    "name": "44_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 1000,
+    "n_submitted_tasks": 1000,
+    "submission_date": "2019-05-10 19:15:10.776101",
+    "raw_files_exist": false
+  },
+  {
+    "name": "45_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 1000,
+    "n_submitted_tasks": 1000,
+    "submission_date": "2019-05-10 19:15:47.837847",
+    "raw_files_exist": false
+  },
+  {
+    "name": "42_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 100,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-05-10 10:03:18.510652",
+    "raw_files_exist": false
+  },
+  {
+    "name": "46_deep_q_learning",
     "status": "running",
     "n_completed_tasks": 0,
-    "n_submitted_tasks": 1000,
-    "submission_date": "2019-05-08 13:32:52.026079"
+    "n_submitted_tasks": 2,
+    "submission_date": "2019-05-17 17:26:09.621719"
+  },
+  {
+    "name": "47_deep_q_learning",
+    "status": "running",
+    "n_completed_tasks": 0,
+    "n_submitted_tasks": 2,
+    "submission_date": "2019-05-17 17:27:32.369366"
+  },
+  {
+    "name": "48_deep_q_learning",
+    "status": "running",
+    "n_completed_tasks": 0,
+    "n_submitted_tasks": 2,
+    "submission_date": "2019-05-17 17:27:36.885162"
   }
 ]

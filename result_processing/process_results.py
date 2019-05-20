@@ -8,7 +8,8 @@ sys.path.insert(0, database_path)
 from database import clean_database, read_database, add_to_database
 from datetime import datetime
 
-output = Path(__file__).parent.resolve()
+#  output = Path(__file__).parent.resolve()
+output = Path('/data3/bolensadrien/output')
 
 clean_database()
 
@@ -148,7 +149,7 @@ for entry in database_entries:
                 run('rm -r ' + str(result_dir / 'array-*'), shell=True)
                 run('rm ' + str(result_dir / 'slurm-*.out'), shell=True)
                 run(['rm', result_dir / 'job_script_slurm.sh'])
-                raw_files_exist = True
+                raw_files_exist = False
             elif answer == "no":
                 raw_files_exist = True
                 pass

@@ -89,7 +89,8 @@ class SpinSystem(System):
     (twoqubit_gate) and methods to generate spin states and evolve them.
     The exact spin Hamiltonian is left unspecified.
     """
-    def __init__(self, n_sites, ham_params, bc='periodic', store_gates=True):
+    def __init__(self, n_sites, ham_params, bc='periodic', store_gates=True,
+                 **other_parameters):
         self.n_sites = n_sites
         self.dim = 2**n_sites
         self.shape = (2**n_sites, 2**n_sites)
@@ -98,6 +99,7 @@ class SpinSystem(System):
         self.init_hamiltonian(bc, **ham_params)
         self.state = np.zeros(self.dim)
         self.store_gates = store_gates
+        print("store_gates = ", self.store_gates)
         if self.store_gates:
             self.storage_one = {}
             self.storage_all = {}

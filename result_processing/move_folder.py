@@ -6,7 +6,8 @@ sys.path.insert(0, database_path)
 from database import clean_database, read_database
 import json
 
-output = Path(__file__).parent.resolve()
+#  output = Path(__file__).parent.resolve()
+output = Path('/data3/bolensadrien/output')
 destination_folder = 'test_runs'
 dest_path = output / destination_folder
 run(['mkdir', '-p', dest_path])

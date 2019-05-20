@@ -1,7 +1,7 @@
 import random
 import numpy as np
 import sys
-import systems as sy
+#  import systems as sy
 import environments as envs
 #  from math import sqrt
 
@@ -9,7 +9,7 @@ import environments as envs
 class QLearning(object):
 
     def __init__(self,
-                 environment,
+                 #  environment,
                  n_episodes,
                  learning_rate,
                  epsilon_max,
@@ -22,7 +22,12 @@ class QLearning(object):
                  seed=None,
                  **other_params
                  ):
-        self.env = environment
+        params = locals()
+        params.pop('self')
+        params.pop('other_params')
+        params.update(other_params)
+        #  self.env = environment
+        self.env = envs.CurrentGateStateEnv(**params, transmat_in_memory=False)
         self.system_class = system_class
         self.n_episodes = n_episodes
         self.lam = lam
@@ -110,9 +115,9 @@ class QLearning(object):
             state = self.env.s
             next_state, reward, done, _ = self.env.step(action,
                                                         calculate_reward)
-            total_reward += reward
             if done and mode == 'replay':
-                total_reward = self.best_encountered_reward
+                reward = self.best_encountered_reward
+            total_reward += reward
             if not update:
                 step += 1
                 continue
@@ -182,29 +187,29 @@ if __name__ == '__main__':
     # env use np.random whereas q_learning use random: the two seeds are
     # unrelated
 
-    if(parameters['system_class'] == 'SpSm'):
-        system = sy.SpSm(
-            parameters['n_sites'],
-            parameters['ham_params'],
-            bc=parameters['bc']
-        )
-    elif(parameters['system_class'] == 'LongRangeIsing'):
-        system = sy.LongRangeIsing(
-            n_sites=parameters['n_sites'],
-            ham_params=parameters['ham_params'],
-            bc=parameters['bc']
-        )
-    else:
-        ValueError('System specified not implemented')
+    #  if(parameters['system_class'] == 'SpSm'):
+    #      system = sy.SpSm(**parameters)
+    #      #      parameters['n_sites'],
+    #      #      parameters['ham_params'],
+    #      #      bc=parameters['bc']
+    #      #  )
+    #  elif(parameters['system_class'] == 'LongRangeIsing'):
+    #      system = sy.LongRangeIsing(**parameters)
+    #      #      n_sites=parameters['n_sites'],
+    #      #      ham_params=parameters['ham_params'],
+    #      #      bc=parameters['bc']
+    #      #  )
+    #  else:
+    #      ValueError('System specified not implemented')
 
     # The seed here is for the random initial state
-    env = envs.CurrentGateStateEnv(
-        system=system,
-        seed=parameters['seed_initial_state'],
-        **parameters,
-        transmat_in_memory=False
-    )
-    print(f"env.n_steps = {env.n_steps}.")
+    #  env = envs.CurrentGateStateEnv(
+    #      system=system,
+    #      seed=parameters['seed_initial_state'],
+    #      **parameters,
+    #      transmat_in_memory=False
+    #  )
+    print(f"env.n_steps = {parameters['n_steps']}.")
 
     # The seed here is for the exploration randomness
     if len(sys.argv) < 2:
@@ -219,8 +224,9 @@ if __name__ == '__main__':
     print(f'The seed used for the q_learning algorithm = {seed_qlearning}.')
     #  start_qlearning = time.time()
     q_learning = QLearning(
-        environment=env,
-        seed=array_index,
+        #  environment=env,
+        #  seed=array_index,
+        seed=seed_qlearning,
         **parameters
     )
 

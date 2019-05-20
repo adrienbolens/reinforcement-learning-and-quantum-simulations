@@ -11,9 +11,11 @@ from database import read_database
 database = read_database()
 dir_names = [ent['name'] for ent in database if ent['status'] == 'processed']
 
-output = Path(__file__).parent
+#  output = Path(__file__).parent
+output = Path('/data3/bolensadrien/output')
 
-replot = True
+#  replot = True
+replot = False
 plot_name = 'plot'
 
 system_class_list = []

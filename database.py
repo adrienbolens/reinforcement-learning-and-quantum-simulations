@@ -21,7 +21,7 @@ if not database_path.exists():
             print("Please enter yes or no.")
 
 
-def change_database_dir(dir_path):
+def change_dir(dir_path):
     global output, database_path
     output = Path(dir_path)
     database_path = output / 'database.json'

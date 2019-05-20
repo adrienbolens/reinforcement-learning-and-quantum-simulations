@@ -1,7 +1,9 @@
+import math
+
 parameters = {
     'n_sites': 3,
-    'n_steps': 6,
-    'time_segment': 100.0,
+    'n_steps': 3,
+    'time_segment': 1.0,
     'bc': 'open',
     #  'ferro' or 'random'
     'initial_state': 'random_product_state',
@@ -42,19 +44,25 @@ parameters = {
     'epsilon_min': 0.005,
     #  'epsilon_decay': 0.005**(1/0.9e5)
     'n_replays': 100,
+    #  'n_replays': 200,
     'replay_spacing': 200,
+    #  'replay_spacing': 100,
     #  'lam': 0.6
     'lam': 0.8,
-    'model_update_spacing': 100
+    # --- for deep_q_learning:
+    'model_update_spacing': 100,
+    'optimization_method': 'NAG',
+    'GD_eta': 0.6,
+    'GD_gamma': 0.9,
+    'range_one': math.pi
 }
-#  epsilon_decay is such that epsilon_min is reached after 90% of the episodes
+#  epsilon_decay is such that epsilon_min is reached after pp*100% of the
+#  episodes
+pp = 0.9
+#  pp = 2.0/3.0
 parameters['epsilon_decay'] = (
     parameters['epsilon_min']/parameters['epsilon_max']
-)**(1/(0.9*parameters['n_episodes']))
+)**(1/(pp*parameters['n_episodes']))
 
-#  parameters['ham_params'] = {
-#      'J': 1.0,
-#      In order to obtain a good Trotter decomposition
-#      'g': 2*np.pi*parameters['n_steps']/parameters['n_oqbgate_parameters'],
-#      'h': 2*np.pi*parameters['n_steps']/parameters['n_oqbgate_parameters']
-#  }
+parameters['range_all'] = 10 * parameters['ham_params']['J'] \
+    * parameters['time_segment'] / parameters['n_steps']

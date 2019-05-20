@@ -1,6 +1,6 @@
 #  import physics as ph
 import sys
-#  import systems as sy
+import systems as sy
 import numpy as np
 from discrete import Discrete
 from math import pi
@@ -10,20 +10,30 @@ import random
 from scipy.sparse.linalg import expm
 
 
-class QuantumEnv(object):
+class QuantumEnv:
     """Basic environement. Contains only information concerning the system and
     the evolution (n_steps and time_segment), and basic methods.
     Information concerning states and actions are in the subclasses."""
 
-    def __init__(self, system, n_steps, time_segment, initial_state, seed=None,
+    def __init__(self, n_steps, time_segment, initial_state,
+                 seed_initial_state=None,
+                 system_class='LongRangeIsing', store_gates=True,
                  **other_params):
-
-        self.system = system
+        params = locals()
+        params.pop('self')
+        params.pop('other_params')
+        params.update(other_params)
+        if system_class == 'SpSm':
+            self.system = sy.SpSm(**params)
+        elif system_class == 'LongRangeIsing':
+            self.system = sy.LongRangeIsing(**params)
+        else:
+            ValueError('System specified not implemented')
         self.n_steps = n_steps
         self.time_segment = time_segment
         self.unitary_evolution = \
-            expm(-1j*self.time_segment*self.system.hamiltonian)
-        self.set_initial_state(seed, initial_state)
+            expm(-1j * self.time_segment * self.system.hamiltonian)
+        self.set_initial_state(seed_initial_state, initial_state)
 
         self.action_sequence = None
         self.lastaction = None
@@ -170,16 +180,18 @@ class DiscreteQuantumEnv(QuantumEnv):
     for the reward at t=T.
     """
 
-    def __init__(self, system, n_steps, time_segment, initial_state,
+    def __init__(self, n_steps, time_segment, initial_state,
                  n_oqbgate_parameters, n_directions, n_allqubit_actions,
-                 transmat_in_memory=False, seed=None, **other_params):
+                 transmat_in_memory=False, seed_initial_state=None,
+                 **other_params):
         """
         The final time T is set to time_segment.
         The incremental time is 1/n_gates.
         """
 
-        QuantumEnv.__init__(self, system, n_steps, time_segment, initial_state,
-                            seed, **other_params)
+        #  print(other_params)
+        QuantumEnv.__init__(self, n_steps, time_segment, initial_state,
+                            seed_initial_state, **other_params)
 
         self.transmat_in_memory = transmat_in_memory
         self.n_directions = n_directions
@@ -205,17 +217,19 @@ class DiscreteQuantumEnv(QuantumEnv):
         if self.n_allqubit_actions % 2 == 0:
             warnings.warn('The all-bit identity gate is not available.')
         Jt = self.time_segment * self.system.J
-        self.K = np.linspace(-2*Jt/self.n_steps, 2*Jt/self.n_steps,
+        self.K = np.linspace(-2 * Jt / self.n_steps, 2 * Jt / self.n_steps,
                              self.n_allqubit_actions, endpoint=True)
 
         if type(self.system).__name__ == 'LongRangeIsing':
             if self.n_oqbgate_parameters % 2 == 0:
                 warnings.warn('The single-bit identity gate is not available.')
             ht = self.time_segment * self.system.ham_params['h']
-            self.Delta = np.linspace(-2*ht/self.n_steps, 2*ht/self.n_steps,
-                                     self.n_oqbgate_parameters, endpoint=True)
+            self.Delta = np.linspace(-2 * ht / self.n_steps,
+                                     2 * ht / self.n_steps,
+                                     self.n_oqbgate_parameters,
+                                     endpoint=True)
         else:
-            self.Delta = np.linspace(0, 2*pi, self.n_oqbgate_parameters,
+            self.Delta = np.linspace(0, 2 * pi, self.n_oqbgate_parameters,
                                      endpoint=False)
         self.reset()
 
@@ -295,10 +309,11 @@ class DiscreteQuantumEnv(QuantumEnv):
             #  Assume same 1-gate on all sites: a = i_one + n_one * i_all
             action = i_one + i_all * self.n_onequbit_actions
             if inplace:
-                self.action_sequence = [action]*self.n_steps
-            return [action]*self.n_steps
+                self.action_sequence = [action] * self.n_steps
+            return [action] * self.n_steps
         else:
-            return [random.randint(0, self.nA-1) for _ in range(self.n_steps)]
+            return [random.randint(0, self.nA - 1)
+                    for _ in range(self.n_steps)]
             #  raise NotImplementedError
 
     def decode_allqubit_gate(self, i):
@@ -332,7 +347,7 @@ class DiscreteQuantumEnv(QuantumEnv):
                     self.system.onequbit_gate(site, self.Delta[ix], 'sx')]
         else:
             raise ValueError('one-qubit gates for #directions other than 1 '
-                             'and 2 are not implemented')
+                             'or 2 are not implemented')
 
     def decode_action(self, i):
         """Given an integer 0<= i < nA, return the appropriate set of n_sites
@@ -380,7 +395,7 @@ class FullSequenceStateEnv(DiscreteQuantumEnv):
     def __init__(self, *arg, **kwarg):
         DiscreteQuantumEnv.__init__(self, *arg, **kwarg)
 
-        self.nS = (1-self.nA**(self.n_steps+1))//(1-self.nA)
+        self.nS = (1 - self.nA**(self.n_steps + 1)) // (1 - self.nA)
         self.observation_space = Discrete(self.nS)
 
         if self.transmat_in_memory:
@@ -469,7 +484,7 @@ class CurrentGateStateEnv(DiscreteQuantumEnv):
             return 0
         else:
             action, time = state
-            return self.nA*time + action + 1
+            return self.nA * time + action + 1
 
     def decode_state(self, i):
         """return (action, time) or 'empty'."""
@@ -490,22 +505,31 @@ class ContinuousQuantumEnv(QuantumEnv):
     U = e^(-i* a*range * ham)
     """
 
-    def __init__(self, system, n_steps, time_segment, initial_state,
-                 range_one, range_all, n_directions, seed, **other_params):
+    def __init__(self, n_steps, time_segment, initial_state,
+                 n_directions, seed_initial_state,
+                 range_one=None, range_all=None,
+                 **other_params):
 
-        QuantumEnv.__init__(self, system, n_steps, time_segment, initial_state,
-                            seed, **other_params)
+        QuantumEnv.__init__(self, n_steps, time_segment, initial_state,
+                            seed_initial_state, store_gates=False,
+                            **other_params)
 
         self.n_directions = n_directions
+        if range_one is None:
+            if type(self.system).__name__ == 'LongRangeIsing':
+                range_one = \
+                    2 * self.system.ham_params['h'] * time_segment / n_steps
+            else:
+                range_one = pi
+        if range_all is None:
+            range_all = \
+                2 * self.system.ham_params['J'] * time_segment / n_steps
+
         self.range_one = range_one
         self.range_all = range_all
 
         # actions are lists of length:
         self.action_len = self.n_directions * self.system.n_sites + 1
-
-        self.range_one = range_one
-        self.range_all = range_all
-
         self.reset()
 
     def initial_action_sequence(self):
@@ -523,9 +547,9 @@ class ContinuousQuantumEnv(QuantumEnv):
                     / self.n_steps / self.range_one
                 a_onez = self.system.ham_params['h'] * self.time_segment \
                     / self.n_steps / self.range_one
-                action = [a_all] + [a_onez]*self.system.n_sites \
-                    + [a_onex]*self.system.n_sites
-                return [action]*self.n_steps
+                action = [a_all] + [a_onez] * self.system.n_sites \
+                    + [a_onex] * self.system.n_sites
+                return [action] * self.n_steps
             else:
                 raise NotImplementedError('Trotter sequence only implemented'
                                           ' for n_directions = 2.')
@@ -538,10 +562,10 @@ class ContinuousQuantumEnv(QuantumEnv):
         list_gates = []
         n = self.system.n_sites
         list_gates.append(self.decode_allqubit_gate(action[0]))
-        for site, a in enumerate(action[1:n+1]):
+        for site, a in enumerate(action[1:n + 1]):
             list_gates.append(self.decode_onequbit_gate(site, a, 'sz'))
 
-        for site, a in enumerate(action[n+1:2*n+1]):
+        for site, a in enumerate(action[n + 1:2 * n + 1]):
             list_gates.append(self.decode_onequbit_gate(site, a, 'sx'))
 
         return list_gates
@@ -554,6 +578,9 @@ class ContinuousQuantumEnv(QuantumEnv):
         #  given -1< a< 1, return the gate
         return self.system.allqubit_gate(a, 'sxsx')
 
+    def random_action(self):
+        return np.random.uniform(-1, 1, size=self.action_len)
+
 
 class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
 
@@ -564,7 +591,7 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
     """
 
     def reset(self):
-        self.s = (-1, [0]*self.action_len)
+        self.s = (-1, [0] * self.action_len)
         self.action_sequence = []
         self.lastaction = None
         #  return self.process_state(self.s)
@@ -577,18 +604,24 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
         done = (step >= self.n_steps - 1)
         return ((step, action), done)
 
-    def process_state_action(self, state, action):
+    def process_state_action(self, state, action=None):
+        if action is None:
+            action = np.zeros(self.action_len)
         #  Give a state feedable to the NN
         #  one-hote encode the time
         step, current_action = state
         one_hot_step = np.zeros(self.n_steps, dtype=np.float32)
-        if step == n_steps - 1:
+        if step == self.n_steps - 1:
             # there is no need to calculate the Q function for terminal states.
             pass
         else:
-            one_hot_step[step+1] = 1.0
+            one_hot_step[step + 1] = 1.0
         return np.concatenate(
             (one_hot_step,
              np.array(current_action, dtype=np.float32),
              np.array(action, dtype=np.float32))
         ).reshape(1, -1)
+
+    def process_action(self, processed_sa, action):
+        processed_sa[0, self.n_steps + self.action_len:] = action
+        return processed_sa

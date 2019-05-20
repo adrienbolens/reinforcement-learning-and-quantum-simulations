@@ -5,11 +5,12 @@ import json
 import re
 from parameters import parameters
 import datetime
-from database import add_to_database
+from database import add_to_database, clean_database
 
-profile = False
+clean_database()
+
 #  profile = False
-
+profile = True
 if len(sys.argv) < 2:
     print("Please specifiy the name of the .py file to execute.")
     sys.exit()
@@ -66,11 +67,11 @@ def submit_to_slurm(params):
         #  "partition": "short",
         "job-name": f'{job_index}_{file_name}',
         #  "time": "4-00:00:00",
-        "time": "12:00:00",
+        "time": "24:00:00",
         #  "time": "2:00:00",
         #  "mail-type": "END",
         #  "mem-per-cpu": "50000",
-        "mem-per-cpu": "10000",
+        "mem-per-cpu": "20000",
         "o": job_path / "slurm-%a.out"
     }
 
@@ -81,7 +82,8 @@ def submit_to_slurm(params):
         else:
             options_str += f"#SBATCH --{name}={value}\n"
 
-    python_files = ['q_learning', 'environments', 'systems', 'discrete']
+    python_files = ['q_learning', 'environments', 'systems', 'discrete',
+                    'deep_q_learning']
     python_str = ""
     for name in python_files:
         python_str += f"cp $(pwd)/{name}.py $WORK_DIR\n"
@@ -89,8 +91,10 @@ def submit_to_slurm(params):
     if profile:
         run_command = (f'python -m cProfile -o file.prof {file_name}.py '
                        f'$SLURM_ARRAY_TASK_ID')
+        copy_prof_files = "cp ./*.prof $OUTPUT_DIR\n"
     else:
         run_command = f"python {file_name}.py $SLURM_ARRAY_TASK_ID"
+        copy_prof_files = ""
 
     job_script_slurm = (
         "#!/bin/bash\n\n"
@@ -110,7 +114,7 @@ def submit_to_slurm(params):
         f"cp ./results_info.json $OUTPUT_DIR\n"
         "cp ./*.npy $OUTPUT_DIR\n"
         "cp ./*.txt $OUTPUT_DIR\n"
-        "cp ./*.prof $OUTPUT_DIR\n"
+        f"{copy_prof_files}"
         "cd\n"
         "rm -rf $WORK_DIR\n"
         "unset WORK_DIR\n"
