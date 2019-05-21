@@ -279,14 +279,16 @@ class LongRangeIsing(SpinSystem):
     H_X = 1/N sum_{l<m} s_l^x s_m^x + g sum_l s_l^x
     H_Z = h sum_l s_l^z
     """
-    def init_hamiltonian(self, bc, J, g, h):
+    def init_hamiltonian(self, bc, J, g, h, alpha):
         ham = np.zeros(self.shape)
         for site1 in range(self.n_sites):
             ham += h * onesite_sigmaop(self.n_sites, site1, 'z')
             ham += g * onesite_sigmaop(self.n_sites, site1, 'x')
             for site2 in range(site1+1, self.n_sites):
+                dist = site2 - site1
                 ham += J * \
-                    twosite_sigmaop(self.n_sites, site1, site2, 'x', 'x')
+                    twosite_sigmaop(self.n_sites, site1, site2, 'x', 'x') \
+                    / dist**alpha
         if bc == 'periodic':
             pass
         elif bc != 'open':
@@ -320,34 +322,3 @@ def abs2(x):
 
 def compare(state1, state2):
     return abs2(np.vdot(state1, state2))
-
-
-#  def system_3sites():
-#      ham = tensor_prod(sp, sm, id2) + tensor_prod(id2, sp, sm)
-#      ham += ham.conj().T
-
-#      hs = (
-#          tensor_prod(sx, sx, id2),
-#          tensor_prod(id2, sx, sx),
-#          tensor_prod(sz, id2, id2),
-#          tensor_prod(id2, sz, id2),
-#          tensor_prod(id2, id2, sz),
-#          tensor_prod(sz, id2, id2),
-#          tensor_prod(id2, sz, id2),
-#          tensor_prod(id2, id2, sz)
-#      )
-#      alphas = (0.5, 0.5, -pi/4, -pi/4, -pi/4, pi/4, pi/4, pi/4)
-#      gates = [expm(-1j*a*h) for a, h in zip(alphas, hs)]
-#      return {'ham': ham, 'gates': gates}
-
-
-#  def system_2sites():
-#      ham = np.kron(sp, sm) + np.kron(sm, sp)
-#      hs = (
-#          np.kron(sx, sx),
-#          np.kron(sz, id2) + np.kron(id2, sz),
-#          np.kron(sz, id2) + np.kron(id2, sz)
-#      )
-#      alphas = (0.5, -pi/4, pi/4)
-#      gates = [expm(-1j*a*h) for a, h in zip(alphas, hs)]
-#      return {'ham': ham, 'gates': gates}
