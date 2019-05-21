@@ -293,6 +293,7 @@ class LongRangeIsing(SpinSystem):
             pass
         elif bc != 'open':
             raise ValueError('Boundary conditions not defined.')
+
         self.hamiltonian = sparse.csc_matrix(ham)
 
 
