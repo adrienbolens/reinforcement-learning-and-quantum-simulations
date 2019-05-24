@@ -1,9 +1,10 @@
 import math
+import __main__
 
 parameters = {
-    'n_sites': 3,
-    'n_steps': 3,
-    'time_segment': 1.0,
+    'n_sites': 6,
+    'n_steps': 6,
+    'time_segment': 100.0,
     'bc': 'open',
     #  'ferro' or 'random'
     'initial_state': 'random_product_state',
@@ -19,7 +20,8 @@ parameters = {
         #  In order to obtain a good Trotter decomposition
         #  g: x, h: z
         'g': 2.0,
-        'h': 2.0
+        'h': 2.0,
+        'alpha': 3.0
     },
     'seed_initial_state': 42,
     #  always choose even to allow for identity gate
@@ -36,8 +38,8 @@ parameters = {
     #  n_actions = n_onequbit_actions**n_sites * n_allqubit_actions
 
     # q_learning parameters:
-    'n_episodes': int(1e4),
-    #  'n_episodes': 50,
+    'n_episodes': int(1e5),
+    #  'n_episodes': 400,
     'learning_rate': 0.618,
     'epsilon_max': 1.0,
     'epsilon_min': 0.005,
@@ -47,14 +49,7 @@ parameters = {
     'replay_spacing': 200,
     #  'replay_spacing': 100,
     #  'lam': 0.6
-    'lam': 0.8,
-    # --- for deep_q_learning:
-    'model_update_spacing': 100,
-    'optimization_method': 'NAG',
-    'GD_eta': 0.6,
-    'GD_gamma': 0.9,
-    'range_one': math.pi,
-    'n_initial_actions': 11
+    'lam': 0.8
 }
 #  epsilon_decay is such that epsilon_min is reached after pp*100% of the
 #  episodes
@@ -64,5 +59,18 @@ parameters['epsilon_decay'] = (
     parameters['epsilon_min']/parameters['epsilon_max']
 )**(1/(pp*parameters['n_episodes']))
 
-parameters['range_all'] = 10 * parameters['ham_params']['J'] \
+parameters_deep = {
+    # --- for deep_q_learning:
+    'model_update_spacing': 100,
+    'optimization_method': 'NAG',
+    'GD_eta': 0.6,
+    'GD_gamma': 0.9,
+    'range_one': math.pi,
+    'n_initial_actions': 21
+}
+parameters_deep['range_all'] = 10 * parameters['ham_params']['J'] \
     * parameters['time_segment'] / parameters['n_steps']
+
+print('parameters.py was imported with __main__ = ', __main__.__file__)
+if __main__.__file__ == 'deep_q_learning.py':
+    parameters.update(parameters_deep)

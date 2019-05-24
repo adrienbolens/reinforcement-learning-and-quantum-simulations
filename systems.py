@@ -154,11 +154,13 @@ class SpinSystem(System):
         if self.store_gates and args in self.storage_all:
             return self.storage_all[args]
         ham = np.zeros(self.shape)
+        alpha = self.ham_params.get('alpha', 1)
         if kind == 'sxsx':
             for site1 in range(self.n_sites):
                 for site2 in range(site1+1, self.n_sites):
+                    dist = site2 - site1
                     ham += twosite_sigmaop(self.n_sites, site1, site2,
-                                           'x', 'x')
+                                           'x', 'x') / dist**alpha
             gate = Gate(parameter*ham, symbol=f'{kind}_all({parameter:.2f})')
             if self.store_gates:
                 self.storage_all[args] = gate

@@ -248,7 +248,7 @@ class DeepQLearning(object):
 
     def get_best_action(self, state, use_target=False,
                         #  n_initial_actions=7,
-                        n_iters=15, convergence_threshold=0.001):
+                        n_iters=20, convergence_threshold=0.0005):
         #  newton method for the function
         #  a -> model.predict(process_state_action(next_state, a))
         if use_target:

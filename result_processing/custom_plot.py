@@ -11,7 +11,7 @@ plt.rcParams['text.usetex'] = True
 
 #  parent_folder = Path('.')
 parent_folder = Path('/data3/bolensadrien/output')
-dir_name = '44_q_learning'
+dir_name = '51_q_learning'
 
 input_dir = parent_folder / dir_name
 
@@ -81,7 +81,8 @@ handles, labels = ax.get_legend_handles_labels()
 order = [1, 2, 3, 0]
 handles, labels = zip(*[(handles[i], labels[i]) for i in order])
 #  ax.legend(handles, labels, loc=4, bbox_to_anchor=(1.0, 0.25))
-ax.legend(handles, labels, loc=1, bbox_to_anchor=(1.01, 1.01))
+#  ax.legend(handles, labels, loc=1, bbox_to_anchor=(1.01, 1.01))
+ax.legend(handles, labels, bbox_to_anchor=(1.01, 1.01))
 #  , fontsize=20)
 #  ax.legend(fontsize=16, loc=4)
 

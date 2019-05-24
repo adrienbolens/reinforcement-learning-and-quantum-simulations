@@ -45,7 +45,7 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
     thetas = np.array([-np.log(p)/n_sites for p in probs])
     thetas[thetas > 0.0] = 0.0
 
-    n_skip = n_episodes // 500
+    n_skip = max(n_episodes // 500, 1)
     reward_array = reward_array[:, ::n_skip]
 
     x = range(n_episodes)[::n_skip]
@@ -94,7 +94,7 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
                    label='initial reward (Trotter)',
                    c='r', linestyle='--')
     ax.set_ylim([0, 1.01])
-    ax.set_xlim([0, 1e5])
+    ax.set_xlim([0, n_episodes])
     ax.set_xlabel(r'$t$ (episode)')
     ax.set_ylabel('reward')
     ax.legend()

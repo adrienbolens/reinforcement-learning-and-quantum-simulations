@@ -3,14 +3,14 @@ from subprocess import run
 from pathlib import Path
 import json
 import re
-from parameters import parameters
+from parameters import parameters, parameters_deep
 import datetime
 from database import add_to_database, clean_database
 
 clean_database()
 
-#  profile = False
-profile = True
+profile = False
+#  profile = True
 if len(sys.argv) < 2:
     print("Please specifiy the name of the .py file to execute.")
     sys.exit()
@@ -19,6 +19,11 @@ if len(sys.argv) < 2:
 file_name = sys.argv[1]
 if file_name[-3:] == '.py':
     file_name = file_name[:-3]
+
+print(f'submit_to_slurm.py will submit the file {file_name}.py')
+
+if file_name == 'deep_q_learning':
+    parameters.update(parameters_deep)
 
 
 if len(sys.argv) < 3:
@@ -67,12 +72,12 @@ def submit_to_slurm(params):
         #  "partition": "short",
         "job-name": f'{job_index}_{file_name}',
         #  "time": "4-00:00:00",
-        "time": "48:00:00",
+        "time": "24:00:00",
         #  "time": "0:30:00",
         #  "mail-type": "END",
         #  "mem-per-cpu": "50000",
-        "mem-per-cpu": "20000",
-        #  "mem-per-cpu": "2000",
+        "mem-per-cpu": "5000",
+        #  "mem-per-cpu": "500",
         "o": job_path / "slurm-%a.out"
     }
 
@@ -141,12 +146,14 @@ def submit_to_slurm(params):
 
 
 if __name__ == '__main__':
-    #  for n_sites in range(10, 11):
-        #  parameters['n_sites'] = n_sites
-        #  submit_to_slurm(parameters)
-    #  CAREFULE, TIME SET TO 4-DAYS
+    for n_sites in range(3, 12):
+        parameters['n_sites'] = n_sites
+        submit_to_slurm(parameters)
+    #  for n in range(3, 12, 2):
+    #      parameters['n_initial_actions'] = n
+    #      submit_to_slurm(parameters)
     #  parameters['n_sites'] = 11
     #  parameters['time_segment'] = 1.0
     #  submit_to_slurm(parameters)
     #  parameters['time_segment'] = 100.0
-    submit_to_slurm(parameters)
+    #  submit_to_slurm(parameters)

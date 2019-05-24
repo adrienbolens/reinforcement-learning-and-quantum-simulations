@@ -28,6 +28,9 @@ for entry in database_entries:
                 print(f"{name} still contains the raw results files.")
                 answer = input(f"Delete the arrays folder and slurm files? ")
                 if answer == "yes":
+                    prof_file = result_dir / 'array-1' / 'file.prof'
+                    if prof_file.is_file():
+                        run(['cp', prof_file, result_dir])
                     run('rm -r ' + str(result_dir / 'array-*'), shell=True)
                     run('rm ' + str(result_dir / 'slurm-*.out'), shell=True)
                     run(['rm', result_dir / 'job_script_slurm.sh'])
@@ -138,11 +141,13 @@ for entry in database_entries:
         run(['cp', best_sequence_file, result_dir])
         run(['cp', best_reward_file, result_dir])
         run(['cp', trotter_reward_file, result_dir])
+        prof_file = result_dir / array_dirs[0] / 'file.prof'
+        if prof_file.is_file():
+            run(['cp', prof_file, result_dir])
 
         status = 'processed'
 
         answer = None
-        print('\n')
         while answer not in ("yes", "no"):
             answer = input(f"Delete the array folders and the slurm files? ")
             if answer == "yes":
@@ -155,7 +160,6 @@ for entry in database_entries:
                 pass
             else:
                 print("Please enter yes or no.")
-        print('\n')
 
         info['n_completed_tasks'] = n_arrays
         info['total_hours_average'] = total_hours_average
