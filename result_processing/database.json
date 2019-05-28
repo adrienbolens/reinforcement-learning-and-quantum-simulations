@@ -632,8 +632,8 @@
   },
   {
     "name": "98_q_learning",
-    "status": "running",
-    "n_completed_tasks": 24,
+    "status": "processed",
+    "n_completed_tasks": 100,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:43:08.889931",
     "algorithm": "q_learning",

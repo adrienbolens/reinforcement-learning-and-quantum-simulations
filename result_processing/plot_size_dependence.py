@@ -15,6 +15,7 @@ group_1 = list(range(61, 70))
 group_3 = list(range(89, 98))
 group_100 = list(range(70, 79))
 group_10 = list(range(79, 89))
+
 dir_paths_1 = [parent_folder / f'{i}_q_learning' for i in group_1]
 dir_paths_3 = [parent_folder / f'{i}_q_learning' for i in group_3]
 dir_paths_10 = [parent_folder / f'{i}_q_learning' for i in group_10]
@@ -61,8 +62,8 @@ plt.rcParams.update({'font.size': 18})
 f, ax = plt.subplots(2, 2, figsize=(9, 9))
 ax = ax.flat
 
-ax[0].plot(x_1, rewards_best_1, label='best protocol (t=1)', marker='x')
-ax[0].plot(x_1, rewards_trotter_1, label='Trotter protocol (t=1)', marker='x')
+ax[0].semilogy(x_1, rewards_best_1, label='best protocol (t=1)', marker='x')
+ax[0].semilogy(x_1, rewards_trotter_1, label='Trotter protocol (t=1)', marker='x')
 ax[0].legend()
 ax[0].set_xlabel('number of sites')
 ax[0].set_ylabel('fidelity')
@@ -71,8 +72,8 @@ ax[0].set_xlim([x_1[0], x_1[-1]])
 ticks = list(x_1)
 ax[0].set_xticks(ticks)
 
-ax[1].plot(x_3, rewards_best_3, label='best protocol (t=3)', marker='x')
-ax[1].plot(x_3, rewards_trotter_3, label='Trotter protocol (t=3)', marker='x')
+ax[1].semilogy(x_3, rewards_best_3, label='best protocol (t=3)', marker='x')
+ax[1].semilogy(x_3, rewards_trotter_3, label='Trotter protocol (t=3)', marker='x')
 ax[1].legend()
 ax[1].set_xlabel('number of sites')
 ax[1].set_ylabel('fidelity')
@@ -81,8 +82,8 @@ ax[1].set_xlim([x_3[0], x_3[-1]])
 ticks = list(x_3)
 ax[1].set_xticks(ticks)
 
-ax[2].plot(x_10, rewards_best_10, label='best protocol (t=10)', marker='x')
-ax[2].plot(x_10, rewards_trotter_10, label='Trotter protocol (t=10)',
+ax[2].semilogy(x_10, rewards_best_10, label='best protocol (t=10)', marker='x')
+ax[2].semilogy(x_10, rewards_trotter_10, label='Trotter protocol (t=10)',
            marker='x')
 ax[2].legend()
 ax[2].set_xlabel('number of sites')
@@ -92,8 +93,8 @@ ax[2].set_xlim([x_10[0], x_10[-1]])
 ticks = list(x_10)
 ax[2].set_xticks(ticks)
 
-ax[3].plot(x_100, rewards_best_100, label='best protocol (t=100)', marker='x')
-ax[3].plot(x_100, rewards_trotter_100, label='Trotter protocol (t=100)',
+ax[3].semilogy(x_100, rewards_best_100, label='best protocol (t=100)', marker='x')
+ax[3].semilogy(x_100, rewards_trotter_100, label='Trotter protocol (t=100)',
            marker='x')
 ax[3].legend()
 ax[3].set_xlabel('number of sites')
