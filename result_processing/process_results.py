@@ -28,9 +28,9 @@ for entry in database_entries:
                 print(f"{name} still contains the raw results files.")
                 answer = input(f"Delete the arrays folder and slurm files? ")
                 if answer == "yes":
-                    prof_file = result_dir / 'array-1' / 'file.prof'
-                    if prof_file.is_file():
-                        run(['cp', prof_file, result_dir])
+                    #  prof_file = result_dir / 'array-1' / 'file.prof'
+                    #  if prof_file.is_file():
+                    #      run(['cp', prof_file, result_dir])
                     run('rm -r ' + str(result_dir / 'array-*'), shell=True)
                     run('rm ' + str(result_dir / 'slurm-*.out'), shell=True)
                     run(['rm', result_dir / 'job_script_slurm.sh'])
@@ -118,8 +118,12 @@ for entry in database_entries:
         q_matrix_file = result_dir / f'{max_final_array_dir}/q_matrix.npy'
         max_reward_file = result_dir / \
             f'{max_final_array_dir}/post_episode_rewards__final.npy'
+        final_weights_file = (result_dir / f'{max_final_array_dir}' /
+                              'final_weights.npy')
         run(['cp', q_matrix_file, result_dir])
         run(['cp', max_reward_file, result_dir])
+        if final_weights_file.is_file():
+            run(['cp', final_weights_file, result_dir])
 
         max_reward = np.max(reward_array)
         max_array, max_episode = np.unravel_index(np.argmax(reward_array),

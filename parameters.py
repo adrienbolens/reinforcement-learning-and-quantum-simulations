@@ -2,9 +2,9 @@ import math
 import __main__
 
 parameters = {
-    'n_sites': 6,
+    'n_sites': 3,
     'n_steps': 6,
-    'time_segment': 100.0,
+    'time_segment': 1.0,
     'bc': 'open',
     #  'ferro' or 'random'
     'initial_state': 'random_product_state',
@@ -38,8 +38,8 @@ parameters = {
     #  n_actions = n_onequbit_actions**n_sites * n_allqubit_actions
 
     # q_learning parameters:
-    'n_episodes': int(1e5),
-    #  'n_episodes': 400,
+    'n_episodes': int(1e4),
+    #  'n_episodes': 10,
     'learning_rate': 0.618,
     'epsilon_max': 1.0,
     'epsilon_min': 0.005,
@@ -66,7 +66,7 @@ parameters_deep = {
     'GD_eta': 0.6,
     'GD_gamma': 0.9,
     'range_one': math.pi,
-    'n_initial_actions': 21
+    'n_initial_actions': 13
 }
 parameters_deep['range_all'] = 10 * parameters['ham_params']['J'] \
     * parameters['time_segment'] / parameters['n_steps']

@@ -72,11 +72,11 @@ def submit_to_slurm(params):
         #  "partition": "short",
         "job-name": f'{job_index}_{file_name}',
         #  "time": "4-00:00:00",
-        "time": "24:00:00",
+        "time": "48:00:00",
         #  "time": "0:30:00",
         #  "mail-type": "END",
         #  "mem-per-cpu": "50000",
-        "mem-per-cpu": "5000",
+        "mem-per-cpu": "10000",
         #  "mem-per-cpu": "500",
         "o": job_path / "slurm-%a.out"
     }
@@ -136,19 +136,25 @@ def submit_to_slurm(params):
         f"{job_path}/job_script_slurm.sh"
     ])
 
+    alg = None
+    if re.match(r'\d*_q_learning', name):
+        alg = 'q_learning'
+    if re.match(r'\d*_deep_q_learning', name):
+        alg = 'deep_q_learning'
     add_to_database({
         'name': job_name,
         'status': 'running',
         'n_completed_tasks': 0,
         'n_submitted_tasks': n_arrays,
-        'submission_date': str(datetime.datetime.now())
+        'submission_date': str(datetime.datetime.now()),
+        'algorithm': alg
     })
 
 
 if __name__ == '__main__':
-    for n_sites in range(3, 12):
-        parameters['n_sites'] = n_sites
-        submit_to_slurm(parameters)
+    #  for n_sites in range(3, 14):
+    #      parameters['n_sites'] = n_sites
+    #      submit_to_slurm(parameters)
     #  for n in range(3, 12, 2):
     #      parameters['n_initial_actions'] = n
     #      submit_to_slurm(parameters)
@@ -156,4 +162,4 @@ if __name__ == '__main__':
     #  parameters['time_segment'] = 1.0
     #  submit_to_slurm(parameters)
     #  parameters['time_segment'] = 100.0
-    #  submit_to_slurm(parameters)
+    submit_to_slurm(parameters)

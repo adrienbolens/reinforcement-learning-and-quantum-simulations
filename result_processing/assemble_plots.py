@@ -9,7 +9,8 @@ sys.path.insert(0, database_path)
 from database import read_database
 
 database = read_database()
-dir_names = [ent['name'] for ent in database if ent['status'] == 'processed']
+dir_names, algorithm = zip(*[(ent['name'], ent['algorithm']) for ent in
+                             database if ent['status'] == 'processed'])
 
 #  output = Path(__file__).parent
 output = Path('/data3/bolensadrien/output')
@@ -24,6 +25,7 @@ n_steps_list = []
 n_directions_list = []
 n_all_list = []
 n_one_list = []
+algo_list = []
 
 for name in dir_names:
     result_dir = output / name
@@ -43,7 +45,9 @@ for name in dir_names:
     n_all_list.append(int(params['n_allqubit_actions']))
     n_one_list.append(int(params['n_oqbgate_parameters']))
 
-*_, system_class_sorted, dir_names_sorted = zip(*sorted(zip(
+
+algo_sorted, *_, system_class_sorted, dir_names_sorted = zip(*sorted(zip(
+    algorithm,
     n_sites_list,
     n_steps_list,
     n_directions_list,
@@ -55,10 +59,12 @@ for name in dir_names:
 
 
 for system_class in np.unique(system_class_list):
-    plot_to_gather = [output / dir_name / (plot_name + '.pdf')
-                      for dir_name, sys_class in
-                      zip(dir_names_sorted, system_class_sorted)
-                      if sys_class == system_class]
+    for algo in np.unique(algorithm):
+        plot_to_gather = [output / dir_name / (plot_name + '.pdf') for
+                          dir_name, sys_class, algorithm in
+                          zip(dir_names_sorted, system_class_sorted,
+                              algo_sorted) if sys_class == system_class and
+                          algorithm == algo]
 
-    subprocess.run(['pdfunite'] + plot_to_gather
-                   + [f'{plot_name}_{system_class}.pdf'])
+        subprocess.run(['pdfunite'] + plot_to_gather +
+                       [f'{plot_name}_{system_class}_{algo}.pdf'])
