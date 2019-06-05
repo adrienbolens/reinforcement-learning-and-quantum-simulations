@@ -3,7 +3,7 @@ from subprocess import run
 from pathlib import Path
 import json
 import re
-from parameters import parameters, parameters_deep
+from parameters import parameters, parameters_deep, parameters_vanilla
 import datetime
 from database import add_to_database, clean_database
 
@@ -22,7 +22,9 @@ if file_name[-3:] == '.py':
 
 print(f'submit_to_slurm.py will submit the file {file_name}.py')
 
-if file_name == 'deep_q_learning':
+if file_name == 'q_learning':
+    parameters.update(parameters_vanilla)
+elif file_name == 'deep_q_learning':
     parameters.update(parameters_deep)
 
 

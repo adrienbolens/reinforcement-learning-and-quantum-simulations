@@ -24,22 +24,10 @@ parameters = {
         'alpha': 3.0
     },
     'seed_initial_state': 42,
-    #  always choose even to allow for identity gate
-    #  Not anymore (from 0 to 2pi instead of -pi to pi)
-    #  'n_onequbit_actions': 4,
-    #  For LongRangeIsing: choose odd to allow for identity gate
-    # actually, choose s.t. (n - 1) % 4 ==0
-    'n_oqbgate_parameters': 9,
-
-    #  always choose odd to allow for identity gate
-    # n_all - 1 should be multiple of 4 for the Trotter decomp of LRI
-    'n_allqubit_actions': 9,
-    #  One action is the sequence "one all-to-all gate + n_sites onequbit gate"
-    #  n_actions = n_onequbit_actions**n_sites * n_allqubit_actions
 
     # q_learning parameters:
-    'n_episodes': int(1e4),
-    #  'n_episodes': 10,
+    #  'n_episodes': int(1e4),
+    'n_episodes': 10,
     'learning_rate': 0.618,
     'epsilon_max': 1.0,
     'epsilon_min': 0.005,
@@ -58,6 +46,21 @@ pp = 0.9
 parameters['epsilon_decay'] = (
     parameters['epsilon_min']/parameters['epsilon_max']
 )**(1/(pp*parameters['n_episodes']))
+
+parameters_vanilla = {
+    #  always choose even to allow for identity gate
+    #  Not anymore (from 0 to 2pi instead of -pi to pi)
+    #  'n_onequbit_actions': 4,
+    #  For LongRangeIsing: choose odd to allow for identity gate
+    # actually, choose s.t. (n - 1) % 4 ==0
+    'n_oqbgate_parameters': 9,
+
+    #  always choose odd to allow for identity gate
+    # n_all - 1 should be multiple of 4 for the Trotter decomp of LRI
+    'n_allqubit_actions': 9,
+    #  One action is the sequence "one all-to-all gate + n_sites onequbit gate"
+    #  n_actions = n_onequbit_actions**n_sites * n_allqubit_actions
+}
 
 parameters_deep = {
     # --- for deep_q_learning:

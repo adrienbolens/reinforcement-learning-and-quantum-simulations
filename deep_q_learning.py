@@ -166,7 +166,6 @@ class DeepQLearning(object):
             verbose = False
             if episode % (self.n_episodes//10) == 0:
                 verbose = True
-                self.current_episode = episode
                 print(f'Episode {episode}: ')
             reward = self.run_episode(verbose, mode='explore')
             if reward > self.best_encountered_reward:
@@ -242,13 +241,20 @@ class DeepQLearning(object):
                 self.trace *= self.lam
                 step += 1
         if verbose:
-            print(f'\n----------Total Reward: {total_reward:.2f}, current '
-                  f'epsilon: {self.current_episode:.2f}')
+            print(f'\n----------Total Reward: {total_reward:.2f}')
         return total_reward
 
+    def get_best_discretized_action(self, state, use_target=False):
+        if use_target:
+            model = self.target_model
+        else:
+            model = self.model
+        state = self.env.process_state_action(state)
+        input_ = self.env.process_action(state, action + update_vec)
+
     def get_best_action(self, state, use_target=False,
-                        #  n_initial_actions=7,
                         n_iters=20, convergence_threshold=0.0005):
+        n_iters = 3
         #  newton method for the function
         #  a -> model.predict(process_state_action(next_state, a))
         if use_target:
@@ -256,9 +262,10 @@ class DeepQLearning(object):
         else:
             model = self.model
 
+        #  For now only contain the "state part" and the "action part" will be
+        #  modified inplace
         state = self.env.process_state_action(state)
-        #  print(f'the state is {state}.')
-        a0 = np.linspace(-1, 1, num=self.n_initial_actions, endpoint=True)
+        a0 = np.linspace(-0.5, 0.5, num=self.n_initial_actions, endpoint=True)
         initial_a = [np.full(self.env.action_len, a) for a in a0]
         q_max = 0
         for i, a in enumerate(initial_a):
@@ -275,10 +282,14 @@ class DeepQLearning(object):
                     )
                 else:
                     raise ValueError('optimization_method not implemented.')
+                #  print(f'a is {a}')
+                #  print(f'update_vec is {update_vec}')
                 a, a_old = a + update_vec, a
+                #  print(f'a_old is {a_old}')
                 if np.linalg.norm(a - a_old) < convergence_threshold:
                     print(f"Early convergence after {_} iterations.")
                     break
+            #  print(f'final a is {a}')
             a[1:] = (a[1:] + 1) % 2 - 1
             #  mask = (a_one < -1) | (a_one > 1)
             #  n_outside = np.sum(mask)
@@ -291,11 +302,13 @@ class DeepQLearning(object):
             #          'range')
             #  a[mask] = np.minimum(np.maximum(a[mask], -1), 1)
             a[0] = min(max(a[0], -1), 1)
+            #  print(f'final a after is {a}')
             q = model.predict(self.env.process_action(state, a))[0][0]
             if q > q_max:
                 a_max, q_max = a, q
 
         #  return (a, model.predict(self.env.process_state_action(state, a)))
+        print(f'a_max, q_max = {a_max, q_max}')
         return (a_max, q_max)
 
     def newton_action_update(self, action, state, use_target):
@@ -350,8 +363,11 @@ class DeepQLearning(object):
         elif mode == 'replay':
             action = self.best_encountered_actions[step]
         elif mode == 'greedy':
-            action = self.get_best_action(self.env.s, self.model)[0]
+            action = self.get_best_action(self.env.s)[0]
             #  action = np.argmax(self.q_matrix[self.env.s])
+        else:
+            raise ValueError(f'The action selecting mode {mode} does not '
+                             'exist.')
         return action
 
     def save_best_encountered_actions(self, filename):

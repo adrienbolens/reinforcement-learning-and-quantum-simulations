@@ -604,15 +604,6 @@
     "raw_files_exist": false
   },
   {
-    "name": "111_deep_q_learning",
-    "status": "processed",
-    "n_completed_tasks": 2,
-    "n_submitted_tasks": 2,
-    "submission_date": "2019-05-27 16:09:22.036738",
-    "algorithm": "deep_q_learning",
-    "raw_files_exist": false
-  },
-  {
     "name": "113_deep_q_learning",
     "status": "processed",
     "n_completed_tasks": 100,
@@ -641,8 +632,8 @@
   },
   {
     "name": "99_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 82,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:43:08.947968",
     "algorithm": "q_learning",
@@ -650,8 +641,8 @@
   },
   {
     "name": "100_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 4,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:44:33.463327",
     "algorithm": "q_learning",
@@ -659,8 +650,8 @@
   },
   {
     "name": "101_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 1,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:44:33.521539",
     "algorithm": "q_learning",
@@ -668,8 +659,8 @@
   },
   {
     "name": "102_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 1,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:44:33.579935",
     "algorithm": "q_learning",
@@ -677,8 +668,8 @@
   },
   {
     "name": "103_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 1,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:44:33.638394",
     "algorithm": "q_learning",
@@ -686,8 +677,8 @@
   },
   {
     "name": "104_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 1,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:44:33.697797",
     "algorithm": "q_learning",
@@ -695,8 +686,8 @@
   },
   {
     "name": "105_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 1,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:44:33.757667",
     "algorithm": "q_learning",
@@ -704,8 +695,8 @@
   },
   {
     "name": "106_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 1,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:44:33.816590",
     "algorithm": "q_learning",
@@ -713,8 +704,8 @@
   },
   {
     "name": "107_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 1,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:44:33.885442",
     "algorithm": "q_learning",
@@ -722,8 +713,8 @@
   },
   {
     "name": "108_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 1,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:44:33.945258",
     "algorithm": "q_learning",
@@ -731,8 +722,8 @@
   },
   {
     "name": "109_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 28,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:44:34.006438",
     "algorithm": "q_learning",
@@ -740,8 +731,8 @@
   },
   {
     "name": "110_q_learning",
-    "status": "running",
-    "n_completed_tasks": 0,
+    "status": "processed",
+    "n_completed_tasks": 1,
     "n_submitted_tasks": 100,
     "submission_date": "2019-05-27 09:44:34.065959",
     "algorithm": "q_learning",

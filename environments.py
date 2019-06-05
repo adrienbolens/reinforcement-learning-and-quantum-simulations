@@ -56,6 +56,7 @@ class QuantumEnv:
             raise ValueError(f'Initial state of type {initial_state} '
                              'not implemented.')
         self.initial_state = self.system.state
+        #  print(f'The initial state is {self.initial_state}')
         self.target_state = self.system.evolve(unitary=self.unitary_evolution)
 
     def get_gate_sequence(self, action_sequence=None):

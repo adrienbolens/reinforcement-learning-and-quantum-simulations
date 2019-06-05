@@ -67,7 +67,6 @@ class QLearning(object):
             verbose = False
             if episode % (self.n_episodes//10) == 0:
                 verbose = True
-                self.current_episode = episode
                 print(f'Episode {episode}: ')
             reward = self.run_episode(verbose, mode='explore')
             if reward > self.best_encountered_reward:
@@ -136,8 +135,7 @@ class QLearning(object):
             self.trace *= self.lam
             step += 1
         if verbose:
-            print(f'----------Total Reward: {total_reward:.2f}, current '
-                  f'epsilon: {self.current_episode:.2f}')
+            print(f'----------Total Reward: {total_reward:.2f}')
         return total_reward
 
     def choose_action(self, mode, step=0):
@@ -182,7 +180,8 @@ if __name__ == '__main__':
             info = json.load(f)
         parameters = info['parameters']
     else:
-        from parameters import parameters
+        from parameters import parameters, parameters_vanilla
+        parameters.update(parameters_vanilla)
 
     # env use np.random whereas q_learning use random: the two seeds are
     # unrelated
