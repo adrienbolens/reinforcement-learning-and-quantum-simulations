@@ -8,6 +8,7 @@ import tensorflow.keras as keras
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import tensorflow.keras.backend as K
+import itertools
 print('Modules loaded')
 
 
@@ -250,7 +251,18 @@ class DeepQLearning(object):
         else:
             model = self.model
         state = self.env.process_state_action(state)
-        input_ = self.env.process_action(state, action + update_vec)
+        # action is chosen on a mesh (a0, a1, ..., a(env.action_len -1))
+        # where -1 < a_i <= 1 takes n_a_mesh values.
+        n_a_mesh = 1000
+        a_discrete = np.linspace(-1, 1, n_a_mesh, endpoint=False)
+        q_max, a_max = 0, None
+        for action in itertools.product(a_discrete,
+                                        repeat=self.env.action_len):
+            a = np.array(action)
+            q = model.predict(self.env.process_action(state, a))[0][0]
+            if q > q_max:
+                a_max, q_max = a, q
+        return (a_max, q_max)
 
     def get_best_action(self, state, use_target=False,
                         n_iters=20, convergence_threshold=0.0005):
