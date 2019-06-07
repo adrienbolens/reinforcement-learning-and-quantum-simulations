@@ -21,4 +21,7 @@ q_learning = deep.DeepQLearning(seed=1, **parameters)
 weights = np.load(result_path / 'final_weights.npy')
 q_learning.model.set_weights(weights)
 q_learning.run_episode(verbose=True, mode='greedy', update=False)
+
+print(q_learning.list_q_chosen_actions)
+print(q_learning.list_q_discretized_actions)
 ## -- ##

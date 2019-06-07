@@ -9,6 +9,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import tensorflow.keras.backend as K
 import itertools
+from collections import namedtuple
 print('Modules loaded')
 
 
@@ -25,6 +26,7 @@ class DeepQLearning(object):
                  lam,
                  model_update_spacing,
                  system_class,
+                 architecture,
                  optimization_method='NAG',
                  GD_eta=0.6,
                  GD_gamma=0.9,
@@ -45,6 +47,8 @@ class DeepQLearning(object):
         self.GD_eta = GD_eta
         self.GD_gamma = GD_gamma
         self.n_initial_actions = n_initial_actions
+        #  self.list_q_chosen_actions = []
+        #  self.list_q_discretized_actions = []
         print("self.n_initial_actions = ", self.n_initial_actions)
         if tf_seed is None:
             tf_seed = seed
@@ -59,10 +63,11 @@ class DeepQLearning(object):
         print(f'\nThe neural networks have {self.n_inputs} input neurons.')
 
         tf.set_random_seed(tf_seed)
-        self.architecture = [(100, 'tanh'),
-                             (20, 'relu'),
-                             (20, 'relu'),
-                             (1, 'sigmoid')]
+        #  self.architecture = [(100, 'tanh'),
+        #                       (20, 'relu'),
+        #                       (20, 'relu'),
+        #                       (1, 'sigmoid')]
+        self.architecture = architecture
         print('Tensorflow verion: ', tf.__version__)
         print('Keras verion: ', keras.__version__)
         self.model = Sequential()
@@ -88,24 +93,22 @@ class DeepQLearning(object):
             self.target_model.outputs, self.target_model.inputs
         )[0][0, self.env.n_steps + self.env.action_len:]
 
-        if self.optimization_method == "Newton":
-            self.hessian_action = [
-                K.gradients(self.gradient_action[i],
-                            self.model.inputs)[0][0, self.env.n_steps +
-                                                  self.env.action_len:]
-                for i in range(self.env.action_len)
-            ]
+        #  if self.optimization_method == "Newton":
+        #      self.hessian_action = [
+        #          K.gradients(self.gradient_action[i],
+        #                      self.model.inputs)[0][0, self.env.n_steps +
+        #                                            self.env.action_len:]
+        #          for i in range(self.env.action_len)
+        #      ]
 
-            self.hessian_action_target = [
-                K.gradients(self.gradient_action_target[i],
-                            self.target_model.inputs)[0][0, self.env.n_steps +
-                                                         self.env.action_len:]
-                for i in range(self.env.action_len)
-            ]
+        #      self.hessian_action_target = [
+        #       #  K.gradients(self.gradient_action_target[i],
+        #       #  self.target_model.inputs)[0][0, self.env.n_steps +
+        #       #  self.env.action_len:]
+        #          for i in range(self.env.action_len)
+        #      ]
 
         self.sess = K.get_session()
-
-        self.trace = 0 * np.array(self.current_weights)
 
         self.learning_rate = learning_rate
         self.epsilon = epsilon_max
@@ -153,6 +156,7 @@ class DeepQLearning(object):
         )
 
     def run(self):
+        #  storage_spacing = 250
         rewards = np.zeros(self.n_episodes)
         self.best_encountered_actions = self.env.initial_action_sequence()
         self.best_encountered_reward = \
@@ -168,7 +172,12 @@ class DeepQLearning(object):
             if episode % (self.n_episodes//10) == 0:
                 verbose = True
                 print(f'Episode {episode}: ')
-            reward = self.run_episode(verbose, mode='explore')
+            #  if episode % storage_spacing == 0:
+            #      mode_ = 'explore_and_store'
+            #  else:
+            #      mode_ = 'explore'
+            mode_ = 'explore'
+            reward = self.run_episode(verbose, mode=mode_)
             if reward > self.best_encountered_reward:
                 self.best_encountered_reward = reward
                 self.best_encountered_actions = self.env.action_sequence
@@ -186,8 +195,6 @@ class DeepQLearning(object):
                 self.epsilon *= self.epsilon_decay
 
         print(f"Final epsilon: {self.epsilon:.2f}.\n")
-        #  final_reward = self.run_episode(verbose, mode='greedy',
-        #  update=False)
         self.env.render()
         print(f'\nFidelity of run with final Q: {reward:.4f}')
         print(f'\nBest encountered fidelity: '
@@ -202,7 +209,6 @@ class DeepQLearning(object):
         done = False
         total_reward, reward = 0, 0
         self.env.reset()
-        self.trace *= 0.0
         step = 0
         while not done:
             action = self.choose_action(mode, step)
@@ -213,11 +219,9 @@ class DeepQLearning(object):
                 step += 1
                 continue
             # gradient instead of 1
-            self.trace += self.evaluate_gradient_weights(
+            grad = self.evaluate_gradient_weights(
                 self.env.process_state_action(state, action)
             )
-            #  self.trace[state, action] += 1
-            # weights instead of q_matrix
             #  USE BEHAVIOUR NN
             delta = - self.model.predict(
                 self.env.process_state_action(state, action)
@@ -229,40 +233,41 @@ class DeepQLearning(object):
                 #  newton method instead of max WITH TARGET NN
                 #  USE TARGET NN
                 #  delta += predict of next_state with best_action
-                delta += self.get_best_action(next_state, self.target_model)[1]
+                delta += self.get_best_action(next_state, use_target=True)[1]
                 #  delta += np.max(self.q_matrix[next_state])
 
             #  modify weight of NN
             #  USE BEHAVIOUR NN
 
-            self.current_weights += learning_rate * delta * self.trace
+            self.current_weights += learning_rate * delta * grad
             self.model.set_weights(self.current_weights)
-            #  self.q_matrix += learning_rate * delta * self.trace
             if not done:
-                self.trace *= self.lam
                 step += 1
         if verbose:
             print(f'\n----------Total Reward: {total_reward:.2f}')
         return total_reward
 
-    def get_best_discretized_action(self, state, use_target=False):
+    def get_best_discretized_action(self, state, use_target=False, n_mesh=4,
+                                    n_mesh_all=10):
         if use_target:
             model = self.target_model
         else:
             model = self.model
         state = self.env.process_state_action(state)
         # action is chosen on a mesh (a0, a1, ..., a(env.action_len -1))
-        # where -1 < a_i <= 1 takes n_a_mesh values.
-        n_a_mesh = 1000
-        a_discrete = np.linspace(-1, 1, n_a_mesh, endpoint=False)
-        q_max, a_max = 0, None
-        for action in itertools.product(a_discrete,
-                                        repeat=self.env.action_len):
-            a = np.array(action)
-            q = model.predict(self.env.process_action(state, a))[0][0]
-            if q > q_max:
-                a_max, q_max = a, q
-        return (a_max, q_max)
+        # where -1 < a_i <= 1 takes n_mesh values.
+        a_discrete = np.linspace(-1, 1, n_mesh, endpoint=False)
+        q_max, a_max, q_min = 0, None, 1
+        for a_all in np.linspace(-1, -1, n_mesh_all):
+            for action in itertools.product(a_discrete,
+                                            repeat=self.env.action_len-1):
+                a = np.insert(np.array(action), 0, a_all)
+                q = model.predict(self.env.process_action(state, a))[0][0]
+                if q > q_max:
+                    a_max, q_max = a, q
+                if q < q_min:
+                    q_min = q
+        return (a_max, q_max, q_min)
 
     def get_best_action(self, state, use_target=False,
                         n_iters=20, convergence_threshold=0.0005):
@@ -320,7 +325,7 @@ class DeepQLearning(object):
                 a_max, q_max = a, q
 
         #  return (a, model.predict(self.env.process_state_action(state, a)))
-        print(f'a_max, q_max = {a_max, q_max}')
+        #  print(f'a_max, q_max = {a_max, q_max}')
         return (a_max, q_max)
 
     def newton_action_update(self, action, state, use_target):
@@ -358,24 +363,27 @@ class DeepQLearning(object):
         self.target_model.set_weights(self.current_weights)
 
     def choose_action(self, mode, step=0):
-        if mode == 'explore':
+        if mode == 'explore' or mode == 'explore_and_store':
             # With the probability of (1 - epsilon) take the best action in our
             # Q-table
             #  if random.uniform(0, 1) > self.epsilon:
             if np.random.rand() > self.epsilon:
-                action = self.get_best_action(self.env.s)[0]
+                action, q_ = self.get_best_action(self.env.s)
+                #  if mode == 'explore_and_store':
+                #      self.list_q_chosen_actions.append(q_)
+                #      self.list_q_discretized_actions.append(
+                #          self.get_best_discretized_action(self.env.s)[1:]
+                #      )
+                #      print("q_max's added to lists.")
                 #  action = np.argmax(self.q_matrix[self.env.s])
                 # Else take a random action
             else:
                 action = self.env.random_action()
-                #  ADD FUNCTION TO ENV
                 #  action = self.env.action_space.sample()
-                self.trace *= 0
-                #  self.trace.fill(0.0)
         elif mode == 'replay':
             action = self.best_encountered_actions[step]
         elif mode == 'greedy':
-            action = self.get_best_action(self.env.s)[0]
+            action, q_ = self.get_best_action(self.env.s)
             #  action = np.argmax(self.q_matrix[self.env.s])
         else:
             raise ValueError(f'The action selecting mode {mode} does not '
@@ -399,6 +407,165 @@ class DeepQLearning(object):
     def save_weights(self, filename):
         with open(filename, 'wb') as f:
             np.save(f, self.current_weights)
+
+    #  def save_lists_q_max(self, filename1, filename2=None):
+    #      if filename2 is None:
+    #          filename1, filename2 = \
+    #              (filename1[:-4] + '_chosen' + filename1[-4:],
+    #               filename1[:-4] + '_discretized' + filename1[-4:])
+    #      with open(filename1, 'wb') as f:
+    #          np.save(f, np.array(self.list_q_chosen_actions))
+    #      with open(filename2, 'wb') as f:
+    #          np.save(f,
+    #          np.array(list(zip(*self.list_q_discretized_actions))))
+
+
+class DeepQLearningWithTraces(DeepQLearning):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.trace = 0 * np.array(self.current_weights)
+
+    def run_episode(self, verbose=False, mode='explore', update=True):
+        if mode == 'replay':
+            learning_rate = 1
+        else:
+            learning_rate = self.learning_rate
+        done = False
+        total_reward, reward = 0, 0
+        self.env.reset()
+        self.trace *= 0.0
+        step = 0
+        while not done:
+            action = self.choose_action(mode, step)
+            state = self.env.s
+            next_state, reward, done, _ = self.env.step(action)
+            total_reward += reward
+            if not update:
+                step += 1
+                continue
+            # gradient instead of 1
+            self.trace += self.evaluate_gradient_weights(
+                self.env.process_state_action(state, action)
+            )
+            #  self.trace[state, action] += 1
+            # weights instead of q_matrix
+            #  USE BEHAVIOUR NN
+            delta = - self.model.predict(
+                self.env.process_state_action(state, action)
+            )[0][0]
+            #  delta = - self.q_matrix[state, action]
+
+            delta += reward
+            if not done:
+                #  newton method instead of max WITH TARGET NN
+                #  USE TARGET NN
+                #  delta += predict of next_state with best_action
+                delta += self.get_best_action(next_state, use_target=True)[1]
+                #  delta += np.max(self.q_matrix[next_state])
+
+            #  modify weight of NN
+            #  USE BEHAVIOUR NN
+
+            self.current_weights += learning_rate * delta * self.trace
+            self.model.set_weights(self.current_weights)
+            #  self.q_matrix += learning_rate * delta * self.trace
+            if not done:
+                self.trace *= self.lam
+                step += 1
+        if verbose:
+            print(f'\n----------Total Reward: {total_reward:.2f}')
+        return total_reward
+
+    def choose_action(self, mode, step=0):
+        if mode == 'explore' or mode == 'explore_and_store':
+            # With the probability of (1 - epsilon) take the best action
+            if np.random.rand() > self.epsilon:
+                action, q_ = self.get_best_action(self.env.s)
+                #  if mode == 'explore_and_store':
+                #      self.list_q_chosen_actions.append(q_)
+                #      self.list_q_discretized_actions.append(
+                #          self.get_best_discretized_action(self.env.s)[1:]
+                #      )
+                #      print("q_max's added to lists.")
+            # Else take a random action
+            else:
+                action = self.env.random_action()
+                # ONLY DIFFERENCE WITH METHOD IN SUPER():
+                self.trace *= 0
+        else:
+            action = super().choose_action(mode, step)
+        return action
+
+
+Episode = namedtuple('Episode', ('action_sequence', 'total_reward'))
+
+
+class ReplayMemory(object):
+
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.memory = []
+        self.position = 0
+
+    def push(self, *args):
+        """Saves a transition."""
+        if len(self.memory) < self.capacity:
+            self.memory.append(None)
+        self.memory[self.position] = Episode(*args)
+        self.position = (self.position + 1) % self.capacity
+
+    def sample(self, batch_size):
+        #  return random.sample(self.memory, batch_size)
+        return np.random.choice(self.memory, batch_size)
+
+    def __len__(self):
+        return len(self.memory)
+
+
+class DQLWithReplayMemory(DeepQLearning):
+
+    def __init__(self, capacity, batch_size, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.memory = ReplayMemory(capacity)
+        self.batch_size = batch_size
+
+    def run_episode(self, verbose=False, mode='explore', update=True):
+        done = False
+        total_reward, reward = 0, 0
+        self.env.reset()
+        step = 0
+        while not done:
+            action = self.choose_action(mode, step)
+            next_state, reward, done, _ = self.env.step(action)
+            total_reward += reward
+            step += 1
+        if verbose:
+            print(f'\n----------Total Reward: {total_reward:.2f}')
+        episode = Episode(self.env.action_sequence, total_reward)
+        self.memory.push(episode)
+
+        self.optimize_model()
+
+        return total_reward
+
+    def optimize_model(self):
+        # update policy model using one mini-batch sampled from memory
+        batch = self.memory.sample(self.batch_size)
+        # HERE: transform batch = [((a0, ..., aN-1), rtotal), ((...), rtot), ...]
+        # into something to feed the netowrk
+        # for each episode, N-1 input, N-1 target -> repeat batch_size times.
+        # if RNN, go back to t=0 after each episode
+        # input = state_action (si, ai), i = 0 -> N-1 (si = env.get_transition)
+        s0 = self.env.reset(inplace=False)
+        # get input with the right shape
+        # single target is deltai = Q_policy(si, ai) - (ri + max_a
+        # Q_target(si+1, a))
+        # ri is rtot for i = N-1 else 0
+        # make array of right shape with all targets
+        # train model with keras tools (fit)
+
+
 
 
 if __name__ == '__main__':
@@ -446,6 +613,7 @@ if __name__ == '__main__':
     if create_output_files:
         q_learning.save_best_encountered_actions('best_gate_sequence.txt')
         q_learning.save_weights('final_weights.npy')
+        #  q_learning.save_lists_q_max('list_q_max.npy')
 
         n_rewards = 100
         #  start_post = time.time()

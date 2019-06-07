@@ -93,18 +93,34 @@ for entry in database_entries:
         n_episodes = params['n_episodes']
 
         reward_array = np.empty((n_arrays, n_episodes), dtype=np.float32)
+        q_chosen_array = np.array([])
+        q_disc_max_array = np.array([])
+        q_disc_min_array = np.array([])
         total_hours_average = 0
         for i, a_dir in enumerate(array_dirs):
-            reward_array[i, :] = np.load(result_dir / f'{a_dir}/rewards.npy')
+            a_path = result_dir / a_dir
+            reward_array[i, :] = np.load(a_path / 'rewards.npy')
             with open(result_dir / a_dir / 'results_info.json') as f:
                 results_info = json.load(f)
                 if 'total_time' not in results_info.keys():
                     print("No 'total_time' key in results_info of {a_dir}.")
                 total_hours_average += results_info.get('total_time', -7*86400)
+            q_chosen_array = (
+                np.append(q_chosen_array,
+                          np.load(a_path / 'list_q_max_chosen.npy'))
+            )
+            q_disc_max, q_disc_min = np.load(a_path /
+                                             'list_q_max_discretized.npy')
+            q_disc_max_array = np.append(q_disc_max_array, q_disc_max)
+            q_disc_min_array = np.append(q_disc_min_array, q_disc_min)
         total_hours_average /= n_arrays * 3600
 
         with open(result_dir / 'rewards.npy', 'wb') as f:
             np.save(f, reward_array)
+
+        with open(result_dir / 'q_arrays_comparison.npy', 'wb') as f:
+            np.save(f, np.stack([q_chosen_array, q_disc_max_array,
+                                 q_disc_min_array]))
 
         max_final_reward = np.max(reward_array[:, -1])
         max_final_array = np.argmax(reward_array[:, -1])

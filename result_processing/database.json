@@ -737,5 +737,14 @@
     "submission_date": "2019-05-27 09:44:34.065959",
     "algorithm": "q_learning",
     "raw_files_exist": false
+  },
+  {
+    "name": "114_deep_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 200,
+    "n_submitted_tasks": 200,
+    "submission_date": "2019-06-05 17:43:47.157803",
+    "algorithm": null,
+    "raw_files_exist": true
   }
 ]

@@ -5,7 +5,7 @@ import numpy as np
 from discrete import Discrete
 from math import pi
 import warnings
-import random
+#  import random
 #  from scipy.linalg import expm
 from scipy.sparse.linalg import expm
 
@@ -313,8 +313,9 @@ class DiscreteQuantumEnv(QuantumEnv):
                 self.action_sequence = [action] * self.n_steps
             return [action] * self.n_steps
         else:
-            return [random.randint(0, self.nA - 1)
-                    for _ in range(self.n_steps)]
+            #  return [random.randint(0, self.nA - 1)
+            #          for _ in range(self.n_steps)]
+            return np.random.randint(0, self.nA - 1, size=self.n_steps)
             #  raise NotImplementedError
 
     def decode_allqubit_gate(self, i):
@@ -555,8 +556,10 @@ class ContinuousQuantumEnv(QuantumEnv):
                 raise NotImplementedError('Trotter sequence only implemented'
                                           ' for n_directions = 2.')
         else:
-            return [[random.uniform(-1, 1) for _ in range(self.action_len)]
-                    for _ in range(self.n_steps)]
+            #  return [[random.uniform(-1, 1) for _ in range(self.action_len)]
+            #          for _ in range(self.n_steps)]
+            return np.random.uniform(-1, 1, size=(self.n_steps,
+                                                  self.action_len))
 
     def decode_action(self, action):
         #  Given [..., ai, ...], return list of gates [, ... Gi, ...]
@@ -591,10 +594,13 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
     the initial state before any action is (-1, [0, 0, ..., 0])
     """
 
-    def reset(self):
-        self.s = (-1, [0] * self.action_len)
-        self.action_sequence = []
-        self.lastaction = None
+    def reset(self, inplace=True):
+        s0 = (-1, [0] * self.action_len)
+        if inplace:
+            self.s = s0
+            self.action_sequence = []
+            self.lastaction = None
+        return s0
         #  return self.process_state(self.s)
 
     def get_transition(self, state, action):

@@ -26,8 +26,8 @@ parameters = {
     'seed_initial_state': 42,
 
     # q_learning parameters:
-    #  'n_episodes': int(1e4),
-    'n_episodes': 10,
+    'n_episodes': int(1e4),
+    #  'n_episodes': 10,
     'learning_rate': 0.618,
     'epsilon_max': 1.0,
     'epsilon_min': 0.005,
@@ -69,9 +69,13 @@ parameters_deep = {
     'GD_eta': 0.6,
     'GD_gamma': 0.9,
     'range_one': math.pi,
+    'architecture': [(100, 'tanh'),
+                     #  (20, 'relu'),
+                     (20, 'relu'),
+                     (1, 'sigmoid')],
     'n_initial_actions': 13
 }
-parameters_deep['range_all'] = 10 * parameters['ham_params']['J'] \
+parameters_deep['range_all'] = 4 * parameters['ham_params']['J'] \
     * parameters['time_segment'] / parameters['n_steps']
 
 print('parameters.py was imported with __main__ = ', __main__.__file__)
