@@ -38,7 +38,7 @@ n_steps = info_dic['parameters']['n_steps']
 
 q_chosen, q_max, q_min = np.load(result_path / 'q_arrays_comparison.npy')
 
-for (i, j) in intervals[0:30]:
+for (i, j) in intervals[5:30]:
     #  for k, qs in enumerate(np.reshape(q_max[i:j], (-1, n_steps))):
     #      xs = range(k*n_steps, (k+1)*n_steps)
     #      plt.plot(xs, qs, label='discrete max')
