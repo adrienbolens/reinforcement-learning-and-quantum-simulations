@@ -1,4 +1,4 @@
-#  import random
+import random
 import numpy as np
 import sys
 #  import systems as sy
@@ -117,7 +117,9 @@ class DeepQLearning(object):
         self.n_replays = n_replays
         self.replay_spacing = replay_spacing
         self.model_update_spacing = model_update_spacing
-        #  random.seed(seed)
+        # random is only used for mini_batch sampling
+        # (somehow, np.random.choice does not like the list of Episode's)
+        random.seed(seed)
         np.random.seed(seed)
         self.best_encountered_actions = None
         self.best_encountered_reward = None
@@ -188,8 +190,9 @@ class DeepQLearning(object):
                 if episode == 0 and self.system_class != 'LongRangeIsing':
                     pass
                 else:
-                    for _ in range(self.n_replays):
-                        self.run_episode(mode='replay')
+                    self.replay_best_episode()
+                    #  for _ in range(self.n_replays):
+                    #      self.run_episode(mode='replay')
 
             if self.epsilon >= self.epsilon_min:
                 self.epsilon *= self.epsilon_decay
@@ -201,51 +204,13 @@ class DeepQLearning(object):
               f'{self.best_encountered_reward:.4f}')
         return rewards
 
+    def replay_best_episode(self):
+        for _ in range(self.n_replays):
+            self.run_episode(mode='replay')
+
     def run_episode(self, verbose=False, mode='explore', update=True):
-        if mode == 'replay':
-            learning_rate = 1
-        else:
-            learning_rate = self.learning_rate
-        done = False
-        total_reward, reward = 0, 0
-        self.env.reset()
-        step = 0
-        while not done:
-            action = self.choose_action(mode, step)
-            state = self.env.s
-            next_state, reward, done, _ = self.env.step(action)
-            total_reward += reward
-            if not update:
-                step += 1
-                continue
-            # gradient instead of 1
-            grad = self.evaluate_gradient_weights(
-                self.env.process_state_action(state, action)
-            )
-            #  USE BEHAVIOUR NN
-            delta = - self.model.predict(
-                self.env.process_state_action(state, action)
-            )[0][0]
-            #  delta = - self.q_matrix[state, action]
-
-            delta += reward
-            if not done:
-                #  newton method instead of max WITH TARGET NN
-                #  USE TARGET NN
-                #  delta += predict of next_state with best_action
-                delta += self.get_best_action(next_state, use_target=True)[1]
-                #  delta += np.max(self.q_matrix[next_state])
-
-            #  modify weight of NN
-            #  USE BEHAVIOUR NN
-
-            self.current_weights += learning_rate * delta * grad
-            self.model.set_weights(self.current_weights)
-            if not done:
-                step += 1
-        if verbose:
-            print(f'\n----------Total Reward: {total_reward:.2f}')
-        return total_reward
+        raise NotImplementedError('Vanilla DQL has no implementation without'
+                                  'ReplayMemory.')
 
     def get_best_discretized_action(self, state, use_target=False, n_mesh=4,
                                     n_mesh_all=10):
@@ -282,7 +247,7 @@ class DeepQLearning(object):
         #  For now only contain the "state part" and the "action part" will be
         #  modified inplace
         state = self.env.process_state_action(state)
-        a0 = np.linspace(-0.5, 0.5, num=self.n_initial_actions, endpoint=True)
+        a0 = np.linspace(-0.8, 0.8, num=self.n_initial_actions, endpoint=True)
         initial_a = [np.full(self.env.action_len, a) for a in a0]
         q_max = 0
         for i, a in enumerate(initial_a):
@@ -429,8 +394,10 @@ class DeepQLearningWithTraces(DeepQLearning):
     def run_episode(self, verbose=False, mode='explore', update=True):
         if mode == 'replay':
             learning_rate = 1
+            calculate_reward = False
         else:
             learning_rate = self.learning_rate
+            calculate_reward = True
         done = False
         total_reward, reward = 0, 0
         self.env.reset()
@@ -439,7 +406,10 @@ class DeepQLearningWithTraces(DeepQLearning):
         while not done:
             action = self.choose_action(mode, step)
             state = self.env.s
-            next_state, reward, done, _ = self.env.step(action)
+            next_state, reward, done, _ = self.env.step(action,
+                                                        calculate_reward)
+            if done and mode == 'replay':
+                reward = self.best_encountered_reward
             total_reward += reward
             if not update:
                 step += 1
@@ -498,7 +468,8 @@ class DeepQLearningWithTraces(DeepQLearning):
         return action
 
 
-Episode = namedtuple('Episode', ('action_sequence', 'total_reward'))
+Episode = namedtuple('Episode', ('action_sequence', 'state_sequence',
+                                 'total_reward', 'q_target_sequence'))
 
 
 class ReplayMemory(object):
@@ -508,56 +479,121 @@ class ReplayMemory(object):
         self.memory = []
         self.position = 0
 
-    def push(self, *args):
+    def push(self, episode, n_pushes=1):
         """Saves a transition."""
-        if len(self.memory) < self.capacity:
-            self.memory.append(None)
-        self.memory[self.position] = Episode(*args)
-        self.position = (self.position + 1) % self.capacity
+        for _ in range(n_pushes):
+            if len(self.memory) < self.capacity:
+                self.memory.append(None)
+            self.memory[self.position] = episode
+            self.position = (self.position + 1) % self.capacity
 
     def sample(self, batch_size):
-        #  return random.sample(self.memory, batch_size)
-        return np.random.choice(self.memory, batch_size)
+        return random.sample(self.memory, batch_size)
+        #  return np.random.choice(self.memory, batch_size)
 
     def __len__(self):
         return len(self.memory)
 
 
 class DQLWithReplayMemory(DeepQLearning):
+    import random
 
-    def __init__(self, capacity, batch_size, *args, **kwargs):
+    def __init__(self, capacity, sampling_size, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.model.compile(optimizer='adam', loss='logcosh',
+                           metrics=['mse', 'mae'])
+        #  metrics=['accuracy']
+        self.history = {}
         self.memory = ReplayMemory(capacity)
-        self.batch_size = batch_size
+        self.sampling_size = sampling_size
+        self.batch_size = sampling_size * self.env.n_steps
+        # not setting weights manually anymore (except for target), just
+        # use get_weight method
+        self.current_weights = None  # to avoid implementation mistakes
 
     def run_episode(self, verbose=False, mode='explore', update=True):
+        if mode == 'replay':
+            calculate_reward = False
+        else:
+            calculate_reward = True
         done = False
         total_reward, reward = 0, 0
+        q_target_sequence = []
+        state_sequence = []
         self.env.reset()
         step = 0
         while not done:
             action = self.choose_action(mode, step)
-            next_state, reward, done, _ = self.env.step(action)
+            state_sequence.append(self.env.s)
+            next_state, reward, done, _ = self.env.step(action,
+                                                        calculate_reward)
+            if done and mode == 'replay':
+                reward = self.best_encountered_reward
             total_reward += reward
+            if not done:
+                q_target_sequence.append(
+                    self.get_best_action(next_state, use_target=True)[1]
+                )
             step += 1
         if verbose:
             print(f'\n----------Total Reward: {total_reward:.2f}')
-        episode = Episode(self.env.action_sequence, total_reward)
-        self.memory.push(episode)
+        #  state_sequence = self.env.get_states_from_action_sequence()
+        episode = Episode(self.env.action_sequence, state_sequence,
+                          total_reward, np.array(q_target_sequence))
+        n_pushes = 1
+        if mode == 'replay':
+            n_pushes = self.n_replays
+        self.memory.push(episode, n_pushes)
 
         self.optimize_model()
 
         return total_reward
 
+    def replay_best_episode(self):
+        self.run_episode(mode='replay')
+
     def optimize_model(self):
         # update policy model using one mini-batch sampled from memory
-        batch = self.memory.sample(self.batch_size)
-        # HERE: transform batch = [((a0, ..., aN-1), rtotal), ((...), rtot), ...]
+        # episodes is a list of namedtuple "Episode"
+        if(len(self.memory) < self.sampling_size):
+            return None
+        episodes = self.memory.sample(self.sampling_size)
+        batch = Episode(*zip(*episodes))
+        #  # tuple of floats with all rewards of the minibatch
+        #  reward = batch.total_reward
+        #  # tuple of lists with all action_sequences
+        #  action_sequence = batch.action_sequence
+
+        # transforms batch = [((a0, ..., aN-1), rtotal), ((...), rtot),...]
         # into something to feed the netowrk
-        # for each episode, N-1 input, N-1 target -> repeat batch_size times.
+        labels = np.zeros(self.batch_size)
+        labels[self.env.n_steps-1::self.env.n_steps] = batch.total_reward
+        # ---- just reward, need to get actual target from Q-learning:
+        for i, e in enumerate(episodes):
+            labels[i*self.env.n_steps:(i+1)*self.env.n_steps-1] = \
+                e.q_target_sequence
+        #          ([self.get_best_action(s, use_target=True)[1]
+        #            for s in e.state_sequence[1:]])
+        # idea: store those Q_target values in Replay Memory, and update them
+        # when Q_target is updated (if update_time >~ capacity)
+        # if update_time >> capacity, no need to update at all, as memory
+        # changes too fast
+
+        #  train = np.zeros(shape=(self.batch_size, self.n_inputs))
+        train = np.concatenate([self.env.inputs_from_sequence(*seqs)
+                                for seqs in zip(batch.action_sequence,
+                                                batch.state_sequence)])
+
+        assert len(train) == self.batch_size, \
+            'training data was not properly processed'
+
+        self.model.fit(train, labels, epochs=1)
+        for key in self.model.history.history:
+            if key not in self.history:
+                self.history[key] = []
+            self.history[key].append(self.model.history.history[key][0])
+
         # if RNN, go back to t=0 after each episode
-        # input = state_action (si, ai), i = 0 -> N-1 (si = env.get_transition)
-        s0 = self.env.reset(inplace=False)
         # get input with the right shape
         # single target is deltai = Q_policy(si, ai) - (ri + max_a
         # Q_target(si+1, a))
@@ -565,7 +601,21 @@ class DQLWithReplayMemory(DeepQLearning):
         # make array of right shape with all targets
         # train model with keras tools (fit)
 
+    def update_target_model(self):
+        self.target_model.set_weights(self.model.get_weights())
 
+    def save_weights(self, filename):
+        with open(filename, 'wb') as f:
+            np.save(f, np.array(self.model.get_weights()))
+
+    def save_history(self, filename):
+        keys = ['loss', 'mean_squared_error', 'mean_absolute_error']
+        history_array = np.array(
+            [self.history[key] for key in keys]
+        )
+        print('saving history of NN for metrics: ', keys)
+        with open(filename, 'wb') as f:
+            np.save(f, history_array)
 
 
 if __name__ == '__main__':
@@ -579,7 +629,8 @@ if __name__ == '__main__':
             info = json.load(f)
         parameters = info['parameters']
     else:
-        from parameters import parameters
+        from parameters import parameters, parameters_deep
+        parameters.update(parameters_deep)
 
     print(f"env.n_steps = {parameters['n_steps']}.")
 
@@ -597,11 +648,14 @@ if __name__ == '__main__':
     seed_qlearning = array_index
     print(f'The seed used for the q_learning algorithm = {seed_qlearning}.')
     #  start_qlearning = time.time()
-    q_learning = DeepQLearning(
-        #  environment=env,
-        seed=seed_qlearning,
-        **parameters
-    )
+    if parameters['subclass'] == 'WithReplayMemory':
+        q_learning = DQLWithReplayMemory(
+            #  environment=env,
+            seed=seed_qlearning,
+            **parameters
+        )
+    else:
+        raise NotImplementedError('subclass in parameters.py not recognized')
 
     initial_action_sequence = q_learning.env.initial_action_sequence()
     initial_reward = q_learning.env.reward(initial_action_sequence)
@@ -635,6 +689,9 @@ if __name__ == '__main__':
                 n_rewards,
                 initial_action_sequence
             )
+        if parameters['subclass'] == 'WithReplayMemory':
+            q_learning.save_history('NN_history.npy')
+
         #  end_post = time.time()
         end_time = time.time()
 

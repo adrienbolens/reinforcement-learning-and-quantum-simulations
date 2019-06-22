@@ -56,7 +56,7 @@ class QLearning(object):
             if type(value) in (str, int, float):
                 print(f'{attribute} = {value}')
 
-    def run(self, ret_q_matrix=False):
+    def run(self):
         rewards = np.zeros(self.n_episodes)
         self.best_encountered_actions = self.env.initial_action_sequence()
         self.best_encountered_reward = \
@@ -73,11 +73,12 @@ class QLearning(object):
                 self.best_encountered_reward = reward
                 self.best_encountered_actions = self.env.action_sequence
             rewards[episode] = reward
-            if episode % 100 == 0 and episode < self.n_episodes - 1:
+            if episode % self.replay_spacing == 0 \
+                    and episode < self.n_episodes - 1:
                 if episode == 0 and self.system_class != 'LongRangeIsing':
                     pass
                 else:
-                    for _ in range(200):
+                    for _ in range(self.n_replays):
                         self.run_episode(mode='replay')
             if self.epsilon >= self.epsilon_min:
                 self.epsilon *= self.epsilon_decay
@@ -169,6 +170,42 @@ class QLearning(object):
             np.save(f, np.array([r1, r2]))
 
 
+class Rerun(QLearning):
+
+    def __init__(self, q_matrix, **other_params):
+        print('WARNING: This is a rerun with a preset q_matrix, which will not'
+              'be updated')
+        super().__init__(**other_params)
+        self.q_matrix = q_matrix
+
+    def run(self):
+        rewards = np.zeros(self.n_episodes)
+        self.best_encountered_actions = self.env.initial_action_sequence()
+        self.best_encountered_reward = \
+            self.env.reward(self.best_encountered_actions)
+        print('Fidelity of the initial action sequence (e.g. Trotter) is '
+              f'{self.best_encountered_reward}')
+        for episode in range(self.n_episodes):
+            verbose = False
+            if episode % (self.n_episodes//10) == 0:
+                verbose = True
+                print(f'Episode {episode}: ')
+            reward = self.run_episode(verbose, mode='explore', update=False)
+            if reward > self.best_encountered_reward:
+                self.best_encountered_reward = reward
+                self.best_encountered_actions = self.env.action_sequence
+            rewards[episode] = reward
+            if self.epsilon >= self.epsilon_min:
+                self.epsilon *= self.epsilon_decay
+
+        print(f"Final epsilon: {self.epsilon:.2f}.\n")
+        self.env.render()
+        print(f'\nFidelity of run with final Q: {reward:.4f}')
+        print(f'\nBest encountered fidelity: '
+              f'{self.best_encountered_reward:.4f}')
+        return rewards
+
+
 if __name__ == '__main__':
     import time
     start_time = time.time()
@@ -182,6 +219,16 @@ if __name__ == '__main__':
     else:
         from parameters import parameters, parameters_vanilla
         parameters.update(parameters_vanilla)
+
+    #  ############### RERUN
+    print("This is a rerun using the q_matrix in:")
+    rerun_path = Path('/data3/bolensadrien/output/45_q_learning')
+    print(rerun_path)
+    q_matrix_file = rerun_path / 'q_matrix.npy'
+    q_matrix = np.load(q_matrix_file)
+    with open(rerun_path / 'info.json') as f:
+        info = json.load(f)
+    parameters = info['parameters']
 
     # env use np.random whereas q_learning use random: the two seeds are
     # unrelated
@@ -222,9 +269,16 @@ if __name__ == '__main__':
     seed_qlearning = array_index
     print(f'The seed used for the q_learning algorithm = {seed_qlearning}.')
     #  start_qlearning = time.time()
-    q_learning = QLearning(
+    #  q_learning = QLearning(
+    #      #  environment=env,
+    #      #  seed=array_index,
+    #      seed=seed_qlearning,
+    #      **parameters
+    #  )
+    q_learning = Rerun(
         #  environment=env,
         #  seed=array_index,
+        q_matrix,
         seed=seed_qlearning,
         **parameters
     )

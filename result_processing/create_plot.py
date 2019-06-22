@@ -1,7 +1,7 @@
 import numpy as np
 import json
-import matplotlib as m
-m.use('TkAgg')
+#  import matplotlib as m
+#  m.use('TkAgg')
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pprint

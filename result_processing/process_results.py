@@ -105,22 +105,22 @@ for entry in database_entries:
                 if 'total_time' not in results_info.keys():
                     print("No 'total_time' key in results_info of {a_dir}.")
                 total_hours_average += results_info.get('total_time', -7*86400)
-            q_chosen_array = (
-                np.append(q_chosen_array,
-                          np.load(a_path / 'list_q_max_chosen.npy'))
-            )
-            q_disc_max, q_disc_min = np.load(a_path /
-                                             'list_q_max_discretized.npy')
-            q_disc_max_array = np.append(q_disc_max_array, q_disc_max)
-            q_disc_min_array = np.append(q_disc_min_array, q_disc_min)
+            #  q_chosen_array = (
+            #      np.append(q_chosen_array,
+            #                np.load(a_path / 'list_q_max_chosen.npy'))
+            #  )
+            #  q_disc_max, q_disc_min = np.load(a_path /
+            #                                   'list_q_max_discretized.npy')
+            #  q_disc_max_array = np.append(q_disc_max_array, q_disc_max)
+            #  q_disc_min_array = np.append(q_disc_min_array, q_disc_min)
         total_hours_average /= n_arrays * 3600
 
         with open(result_dir / 'rewards.npy', 'wb') as f:
             np.save(f, reward_array)
 
-        with open(result_dir / 'q_arrays_comparison.npy', 'wb') as f:
-            np.save(f, np.stack([q_chosen_array, q_disc_max_array,
-                                 q_disc_min_array]))
+        #  with open(result_dir / 'q_arrays_comparison.npy', 'wb') as f:
+        #      np.save(f, np.stack([q_chosen_array, q_disc_max_array,
+        #                           q_disc_min_array]))
 
         max_final_reward = np.max(reward_array[:, -1])
         max_final_array = np.argmax(reward_array[:, -1])

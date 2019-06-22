@@ -11,7 +11,7 @@ plt.rcParams['text.usetex'] = True
 
 #  parent_folder = Path('.')
 parent_folder = Path('/data3/bolensadrien/output')
-dir_name = '51_q_learning'
+dir_name = '45_q_learning'
 
 input_dir = parent_folder / dir_name
 

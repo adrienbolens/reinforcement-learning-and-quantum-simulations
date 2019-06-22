@@ -74,6 +74,9 @@ class QuantumEnv:
             outfile.write(f'Step {n}:\n {str(gates[n*m:(n+1)*m])}\n\n')
 
     def step(self, a, calculate_reward=True):
+        if self.action_sequence is None:
+            raise NotImplementedError('action_sequence not initialized'
+                                      'reset() should have been called.')
         self.action_sequence.append(a)
         next_state, done = self.get_transition(self.s, a)
         self.s = next_state
@@ -595,7 +598,7 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
     """
 
     def reset(self, inplace=True):
-        s0 = (-1, [0] * self.action_len)
+        s0 = (-1, np.zeros(self.action_len))
         if inplace:
             self.s = s0
             self.action_sequence = []
@@ -611,7 +614,7 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
         done = (step >= self.n_steps - 1)
         return ((step, action), done)
 
-    def process_state_action(self, state, action=None):
+    def process_state_action(self, state, action=None, reshape=True):
         if action is None:
             action = np.zeros(self.action_len)
         #  Give a state feedable to the NN
@@ -622,13 +625,33 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
             # there is no need to calculate the Q function for terminal states.
             pass
         else:
+            # here, step from -1 to n_steps - 2
             one_hot_step[step + 1] = 1.0
-        return np.concatenate(
-            (one_hot_step,
-             np.array(current_action, dtype=np.float32),
+        NNinput = np.concatenate(
+            (one_hot_step, np.array(current_action, dtype=np.float32),
              np.array(action, dtype=np.float32))
-        ).reshape(1, -1)
+        )
+        if reshape:
+            return NNinput.reshape(1, -1)
+        else:
+            return NNinput
 
     def process_action(self, processed_sa, action):
         processed_sa[0, self.n_steps + self.action_len:] = action
         return processed_sa
+
+    def inputs_from_sequence(self, states, actions):
+        #  states = self.get_states_from_action_sequence(action_sequence)
+        #  states = np.insert(list(enumerate(action_sequence[:-1])), 0,
+        #                     (-1, [0] * self.action_len))
+
+        NNinput = np.zeros((self.n_steps, 2*self.action_len + self.n_steps))
+        for i, s, a in zip(range(len(actions)), states, actions):
+            NNinput[i, :] = self.process_state_action(a, s, reshape=False)
+        return NNinput
+
+    def get_states_from_action_sequence(self, action_sequence=None):
+        if action_sequence is None:
+            action_sequence = self.action_sequence
+        return np.insert(list(enumerate(action_sequence[:-1])), 0,
+                         (-1, [0] * self.action_len))

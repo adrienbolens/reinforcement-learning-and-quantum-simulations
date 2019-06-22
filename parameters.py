@@ -2,12 +2,13 @@ import math
 import __main__
 
 parameters = {
-    'n_sites': 3,
+    'n_sites': -1,
     'n_steps': 6,
     'time_segment': 1.0,
     'bc': 'open',
     #  'ferro' or 'random'
     'initial_state': 'random_product_state',
+    #  'initial_state': 'antiferro',
     #  'initial_state': None,
     #  'transmat_in_memory': False
     #  seed_env = 999
@@ -27,7 +28,7 @@ parameters = {
 
     # q_learning parameters:
     'n_episodes': int(1e4),
-    #  'n_episodes': 10,
+    #  'n_episodes': 50,
     'learning_rate': 0.618,
     'epsilon_max': 1.0,
     'epsilon_min': 0.005,
@@ -70,14 +71,19 @@ parameters_deep = {
     'GD_gamma': 0.9,
     'range_one': math.pi,
     'architecture': [(100, 'tanh'),
-                     #  (20, 'relu'),
+                     (20, 'relu'),
                      (20, 'relu'),
                      (1, 'sigmoid')],
-    'n_initial_actions': 13
+    'n_initial_actions': 13,
+    'capacity': 1000,
+    'sampling_size': 100,
+    'subclass': 'WithReplayMemory'
 }
 parameters_deep['range_all'] = 4 * parameters['ham_params']['J'] \
     * parameters['time_segment'] / parameters['n_steps']
 
 print('parameters.py was imported with __main__ = ', __main__.__file__)
-if __main__.__file__ == 'deep_q_learning.py':
-    parameters.update(parameters_deep)
+#  if __main__.__file__ == 'deep_q_learning.py':
+#      parameters.update(parameters_deep)
+#  elif __main__.__file__ == 'q_learning.py':
+#      parameters.update(parameters_vanilla)

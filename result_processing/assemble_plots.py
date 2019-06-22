@@ -42,8 +42,8 @@ for name in dir_names:
     n_sites_list.append(int(params['n_sites']))
     n_steps_list.append(int(params['n_steps']))
     n_directions_list.append(int(params['n_directions']))
-    n_all_list.append(int(params['n_allqubit_actions']))
-    n_one_list.append(int(params['n_oqbgate_parameters']))
+    n_all_list.append(int(params.get('n_allqubit_actions', 0)))
+    n_one_list.append(int(params.get('n_oqbgate_parameters', 0)))
 
 
 algo_sorted, *_, system_class_sorted, dir_names_sorted = zip(*sorted(zip(

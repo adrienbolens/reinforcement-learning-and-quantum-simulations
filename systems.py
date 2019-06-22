@@ -281,7 +281,7 @@ class LongRangeIsing(SpinSystem):
     H_X = 1/N sum_{l<m} s_l^x s_m^x + g sum_l s_l^x
     H_Z = h sum_l s_l^z
     """
-    def init_hamiltonian(self, bc, J, g, h, alpha):
+    def init_hamiltonian(self, bc, J, g, h, alpha=1.0):
         ham = np.zeros(self.shape)
         for site1 in range(self.n_sites):
             ham += h * onesite_sigmaop(self.n_sites, site1, 'z')

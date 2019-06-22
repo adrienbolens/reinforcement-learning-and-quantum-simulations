@@ -77,8 +77,8 @@ def submit_to_slurm(params):
         "time": "48:00:00",
         #  "time": "0:30:00",
         #  "mail-type": "END",
-        #  "mem-per-cpu": "50000",
-        "mem-per-cpu": "10000",
+        "mem-per-cpu": "50000",
+        #  #  "mem-per-cpu": "10000",
         #  "mem-per-cpu": "500",
         "o": job_path / "slurm-%a.out"
     }
@@ -139,10 +139,12 @@ def submit_to_slurm(params):
     ])
 
     alg = None
-    if re.match(r'\d*_q_learning', name):
+    if re.match(r'\d*_q_learning', job_name):
         alg = 'q_learning'
-    if re.match(r'\d*_deep_q_learning', name):
+    if re.match(r'\d*_deep_q_learning', job_name):
         alg = 'deep_q_learning'
+        if params['subclass'] == 'WithReplayMemory':
+            alg = 'DQN_ReplayMemory'
     add_to_database({
         'name': job_name,
         'status': 'running',
