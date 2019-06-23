@@ -27,7 +27,7 @@ class DeepQLearning(object):
                  model_update_spacing,
                  system_class,
                  architecture,
-                 optimization_method='NAG',
+                 max_Q_optimizer='NAG',
                  GD_eta=0.6,
                  GD_gamma=0.9,
                  n_initial_actions=5,
@@ -43,7 +43,7 @@ class DeepQLearning(object):
         self.system_class = system_class
         self.n_episodes = n_episodes
         self.lam = lam
-        self.optimization_method = optimization_method
+        self.max_Q_optimizer = max_Q_optimizer
         self.GD_eta = GD_eta
         self.GD_gamma = GD_gamma
         self.n_initial_actions = n_initial_actions
@@ -93,7 +93,7 @@ class DeepQLearning(object):
             self.target_model.outputs, self.target_model.inputs
         )[0][0, self.env.n_steps + self.env.action_len:]
 
-        #  if self.optimization_method == "Newton":
+        #  if self.max_Q_optimizer == "Newton":
         #      self.hessian_action = [
         #          K.gradients(self.gradient_action[i],
         #                      self.model.inputs)[0][0, self.env.n_steps +
@@ -144,9 +144,9 @@ class DeepQLearning(object):
         # hessian[i] = gradient of gradient[i] -> Nabla doutput/dai
         # hessian[i, j] = d( doutput/dai ) / daj = d^2ouput/ daj dai
         # it is actually the tranpose of the hessian
-        if self.optimization_method != 'Newton':
-            raise ValueError('The optimization_method is '
-                             f'{self.optimization_method}, you shoud not need'
+        if self.max_Q_optimizer != 'Newton':
+            raise ValueError('The max_Q_optimizer is '
+                             f'{self.max_Q_optimizer}, you shoud not need'
                              'to calculate the Hessian.')
         if use_target:
             model, hessian = self.target_model, self.hessian_action_target
@@ -254,16 +254,16 @@ class DeepQLearning(object):
             #  print(f"{i}-th initial action")
             update_vec = 0 * a
             for _ in range(n_iters):
-                if self.optimization_method == 'NAG':
+                if self.max_Q_optimizer == 'NAG':
                     update_vec = self.NAG_action_update(
                         a, state, use_target, update_vec
                     )
-                elif self.optimization_method == 'Newton':
+                elif self.max_Q_optimizer == 'Newton':
                     update_vec = self.newton_action_update(
                         a, state, use_target
                     )
                 else:
-                    raise ValueError('optimization_method not implemented.')
+                    raise ValueError('max_Q_optimizer not implemented.')
                 #  print(f'a is {a}')
                 #  print(f'update_vec is {update_vec}')
                 a, a_old = a + update_vec, a
@@ -498,10 +498,12 @@ class ReplayMemory(object):
 class DQLWithReplayMemory(DeepQLearning):
     import random
 
-    def __init__(self, capacity, sampling_size, *args, **kwargs):
+    def __init__(self, capacity, sampling_size, NN_optimizer, n_epochs, *args,
+                 **kwargs):
         super().__init__(*args, **kwargs)
-        self.model.compile(optimizer='adam', loss='logcosh',
+        self.model.compile(optimizer=NN_optimizer, loss='logcosh',
                            metrics=['mse', 'mae'])
+        self.n_epochs = n_epochs
         #  metrics=['accuracy']
         self.history = {}
         self.memory = ReplayMemory(capacity)
@@ -587,7 +589,7 @@ class DQLWithReplayMemory(DeepQLearning):
         assert len(train) == self.batch_size, \
             'training data was not properly processed'
 
-        self.model.fit(train, labels, epochs=1)
+        self.model.fit(train, labels, epochs=self.n_epochs)
         for key in self.model.history.history:
             if key not in self.history:
                 self.history[key] = []

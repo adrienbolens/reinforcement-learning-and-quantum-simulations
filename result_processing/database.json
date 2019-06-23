@@ -767,11 +767,110 @@
   },
   {
     "name": "115_deep_q_learning",
-    "status": "running",
-    "n_completed_tasks": 190,
+    "status": "processed",
+    "n_completed_tasks": 200,
     "n_submitted_tasks": 200,
     "submission_date": "2019-06-21 17:51:15.631311",
     "algorithm": "DQN_ReplayMemory",
+    "raw_files_exist": true
+  },
+  {
+    "name": "118_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 500,
+    "n_submitted_tasks": 500,
+    "submission_date": "2019-06-22 14:45:00.699127",
+    "algorithm": "q_learning",
+    "raw_files_exist": true
+  },
+  {
+    "name": "119_deep_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 200,
+    "n_submitted_tasks": 200,
+    "submission_date": "2019-06-22 14:52:12.667312",
+    "algorithm": "DQN_ReplayMemory",
+    "raw_files_exist": true
+  },
+  {
+    "name": "120_q_learning",
+    "status": "running",
+    "n_completed_tasks": 47,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-06-23 16:29:51.797488",
+    "algorithm": "q_learning",
     "raw_files_exist": false
+  },
+  {
+    "name": "121_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 200,
+    "n_submitted_tasks": 200,
+    "submission_date": "2019-06-23 16:36:45.875312",
+    "algorithm": "q_learning",
+    "raw_files_exist": false
+  },
+  {
+    "name": "122_deep_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 200,
+    "n_submitted_tasks": 200,
+    "submission_date": "2019-06-23 16:40:21.547649",
+    "algorithm": "DQN_ReplayMemory",
+    "raw_files_exist": true
+  },
+  {
+    "name": "123_deep_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 200,
+    "n_submitted_tasks": 200,
+    "submission_date": "2019-06-23 16:58:41.444477",
+    "algorithm": "DQN_ReplayMemory",
+    "raw_files_exist": true
+  },
+  {
+    "name": "124_deep_q_learning",
+    "status": "running",
+    "n_completed_tasks": 199,
+    "n_submitted_tasks": 200,
+    "submission_date": "2019-06-23 16:58:51.159119",
+    "algorithm": "DQN_ReplayMemory",
+    "raw_files_exist": false
+  },
+  {
+    "name": "125_deep_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 200,
+    "n_submitted_tasks": 200,
+    "submission_date": "2019-06-23 17:00:48.980391",
+    "algorithm": "DQN_ReplayMemory",
+    "raw_files_exist": true
+  },
+  {
+    "name": "126_deep_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 200,
+    "n_submitted_tasks": 200,
+    "submission_date": "2019-06-23 17:01:40.903504",
+    "algorithm": "DQN_ReplayMemory",
+    "raw_files_exist": true
+  },
+  {
+    "name": "127_deep_q_learning",
+    "status": "running",
+    "n_completed_tasks": 198,
+    "n_submitted_tasks": 200,
+    "submission_date": "2019-06-23 17:01:50.667623",
+    "algorithm": "DQN_ReplayMemory",
+    "raw_files_exist": false
+  },
+  {
+    "name": "128_deep_q_learning",
+    "status": "processed",
+    "n_completed_tasks": 200,
+    "n_submitted_tasks": 200,
+    "submission_date": "2019-06-23 17:01:55.645591",
+    "algorithm": "DQN_ReplayMemory",
+    "raw_files_exist": true
   }
 ]

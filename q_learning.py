@@ -221,14 +221,16 @@ if __name__ == '__main__':
         parameters.update(parameters_vanilla)
 
     #  ############### RERUN
-    print("This is a rerun using the q_matrix in:")
-    rerun_path = Path('/data3/bolensadrien/output/45_q_learning')
-    print(rerun_path)
-    q_matrix_file = rerun_path / 'q_matrix.npy'
-    q_matrix = np.load(q_matrix_file)
-    with open(rerun_path / 'info.json') as f:
-        info = json.load(f)
-    parameters = info['parameters']
+    is_rerun = parameters['is_rerun']
+    if is_rerun:
+        print("This is a rerun using the q_matrix in:")
+        rerun_path = Path('/data3/bolensadrien/output/45_q_learning')
+        print(rerun_path)
+        q_matrix_file = rerun_path / 'q_matrix.npy'
+        q_matrix = np.load(q_matrix_file)
+        with open(rerun_path / 'info.json') as f:
+            info = json.load(f)
+        parameters = info['parameters']
 
     # env use np.random whereas q_learning use random: the two seeds are
     # unrelated
@@ -269,20 +271,21 @@ if __name__ == '__main__':
     seed_qlearning = array_index
     print(f'The seed used for the q_learning algorithm = {seed_qlearning}.')
     #  start_qlearning = time.time()
-    #  q_learning = QLearning(
-    #      #  environment=env,
-    #      #  seed=array_index,
-    #      seed=seed_qlearning,
-    #      **parameters
-    #  )
-    q_learning = Rerun(
-        #  environment=env,
-        #  seed=array_index,
-        q_matrix,
-        seed=seed_qlearning,
-        **parameters
-    )
-
+    if is_rerun:
+        q_learning = Rerun(
+            #  environment=env,
+            #  seed=array_index,
+            q_matrix,
+            seed=seed_qlearning,
+            **parameters
+        )
+    else:
+        q_learning = QLearning(
+            #  environment=env,
+            #  seed=array_index,
+            seed=seed_qlearning,
+            **parameters
+        )
     initial_action_sequence = q_learning.env.initial_action_sequence()
     initial_reward = q_learning.env.reward(initial_action_sequence)
 

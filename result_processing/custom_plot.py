@@ -30,7 +30,7 @@ reward_array = np.empty((n_arrays, n_episodes), dtype=np.float32)
 reward_array = np.load(input_dir / 'rewards.npy')[:]
 max_reward = np.max(reward_array)
 
-n_skip_scatter = n_episodes // 5000
+n_skip_scatter = n_episodes // 500
 reward_scatter = reward_array[:, ::n_skip_scatter]
 x_scatter = range(n_episodes)[::n_skip_scatter]
 
