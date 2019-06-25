@@ -1,5 +1,6 @@
 /output/*
 /output_old/*
 /NN_test/*
+*test*.*
 *.pyc
 *.swp
