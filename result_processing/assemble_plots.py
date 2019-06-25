@@ -29,15 +29,16 @@ algo_list = []
 
 for name in dir_names:
     result_dir = output / name
-
-    if replot or \
-            not (result_dir / (plot_name + '.pdf')).exists():
-        print('\n', f"{f'Producing plot for results in {result_dir}.':-^70}")
-        create_plot(output, name)
-
     with open(result_dir / 'info.json') as f:
         info = json.load(f)
     params = info['parameters']
+
+    if (replot
+            #  or params.get('subclass', None) == 'WithReplayMemory'
+            or not (result_dir / (plot_name + '.pdf')).is_file()):
+        print('\n', f"{f'Producing plot for results in {result_dir}.':-^70}")
+        create_plot(output, name)
+
     system_class_list.append(params['system_class'])
     n_sites_list.append(int(params['n_sites']))
     n_steps_list.append(int(params['n_steps']))

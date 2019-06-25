@@ -40,7 +40,8 @@ for entry in database_entries:
                     pass
                 else:
                     print("Please enter yes or no.")
-        continue
+        if status == 'processed':
+            continue
 
     array_dirs = [
         d.name for d in result_dir.iterdir() if
@@ -61,13 +62,18 @@ for entry in database_entries:
             hours_elapsed = int(
                 (datetime.now() - submission_date).total_seconds()
             ) // 3600
+            print(f"{name} -- hours elapsed: {hours_elapsed}")
             if hours_elapsed > 48:
                 print(f'\n{name} has been running for more than two days '
                       f'({hours_elapsed} hours) -> overtime.')
                 status = 'overtime'
 
+    print(f"{name} -- status: {status}")
     if status == 'to_be_processed' or status == 'overtime':
         print('\n', '{:=^75}'.format(f'Processing results in {name}.'), '\n')
+        if status == 'overtime':
+            if input(f"status is {status}, interrupt processing?") == "yes":
+                continue
         if n_arrays == 0:
             print(f"No results in {name} with status {status}.")
             answer = None
@@ -86,13 +92,23 @@ for entry in database_entries:
         with open(result_dir / 'info.json') as f:
             info = json.load(f)
         params = info['parameters']
+        with_history = False
+        if params.get('subclass', None) == "WithReplayMemory":
+            with_history = True
+            n_metrics, len_history = (np.load(result_dir / array_dirs[0] /
+                                              'NN_history.npy').shape)
+
         if params['system_class'] == 'LongRangeIsing':
             with open(result_dir / array_dirs[0] / 'results_info.json') as f:
                 results_info = json.load(f)
             info['initial_reward'] = results_info['initial_reward']
+            if 'rerun_path' in results_info:
+                info['rerun_path'] = results_info['rerun_path']
         n_episodes = params['n_episodes']
 
         reward_array = np.empty((n_arrays, n_episodes), dtype=np.float32)
+        if with_history:
+            history_array = np.empty((n_metrics,  n_arrays, len_history))
         q_chosen_array = np.array([])
         q_disc_max_array = np.array([])
         q_disc_min_array = np.array([])
@@ -105,6 +121,8 @@ for entry in database_entries:
                 if 'total_time' not in results_info.keys():
                     print("No 'total_time' key in results_info of {a_dir}.")
                 total_hours_average += results_info.get('total_time', -7*86400)
+            if with_history:
+                history_array[:, i, :] = np.load(a_path / 'NN_history.npy')
             #  q_chosen_array = (
             #      np.append(q_chosen_array,
             #                np.load(a_path / 'list_q_max_chosen.npy'))
@@ -117,6 +135,10 @@ for entry in database_entries:
 
         with open(result_dir / 'rewards.npy', 'wb') as f:
             np.save(f, reward_array)
+
+        if with_history:
+            with open(result_dir / 'NN_histories.npy', 'wb') as f:
+                np.save(f, history_array)
 
         #  with open(result_dir / 'q_arrays_comparison.npy', 'wb') as f:
         #      np.save(f, np.stack([q_chosen_array, q_disc_max_array,
@@ -136,7 +158,8 @@ for entry in database_entries:
             f'{max_final_array_dir}/post_episode_rewards__final.npy'
         final_weights_file = (result_dir / f'{max_final_array_dir}' /
                               'final_weights.npy')
-        run(['cp', q_matrix_file, result_dir])
+        if q_matrix_file.is_file():
+            run(['cp', q_matrix_file, result_dir])
         run(['cp', max_reward_file, result_dir])
         if final_weights_file.is_file():
             run(['cp', final_weights_file, result_dir])

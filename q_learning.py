@@ -224,7 +224,7 @@ if __name__ == '__main__':
     is_rerun = parameters['is_rerun']
     if is_rerun:
         print("This is a rerun using the q_matrix in:")
-        rerun_path = Path('/data3/bolensadrien/output/45_q_learning')
+        rerun_path = Path('/data3/bolensadrien/output/132_q_learning')
         print(rerun_path)
         q_matrix_file = rerun_path / 'q_matrix.npy'
         q_matrix = np.load(q_matrix_file)
@@ -336,6 +336,8 @@ if __name__ == '__main__':
             #  'times': times,
             #  'diff_times': diff_times
             }
+        if is_rerun:
+            info_dic['rerun_path'] = str(rerun_path)
         #  print("Compare 'best_encountered_reward' = "
         #        f"{q_learning.best_encountered_reward:.5f} with 'max(rewards)
         #        = "

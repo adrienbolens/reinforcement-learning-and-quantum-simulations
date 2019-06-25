@@ -23,6 +23,7 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
     print(f"{dir_name} contains {n_arrays} completed tasks.")
 
     params = info['parameters']
+    q_learning_subclass = params.get('subclass', None)
     if params['system_class'] == 'LongRangeIsing':
         initial_reward = info['initial_reward']
     n_episodes = params['n_episodes']
@@ -33,17 +34,18 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
     max_reward = np.max(reward_array)
 
     n_sites = params['n_sites']
-    n_bins = 50
-    n_slices = 11
-    slice_episodes = np.linspace(0, n_episodes-1, n_slices).astype(int)
-    r_slices = [reward_array[:, ep] for ep in slice_episodes]
-    probs, bins = zip(*[
-        np.histogram(r, bins=n_bins, density=True, range=[0.0, 1.0]) for r in
-        r_slices
-    ])
-    bins = bins[0]
-    thetas = np.array([-np.log(p)/n_sites for p in probs])
-    thetas[thetas > 0.0] = 0.0
+    if q_learning_subclass != 'WithReplayMemory':
+        n_bins = 50
+        n_slices = 11
+        slice_episodes = np.linspace(0, n_episodes-1, n_slices).astype(int)
+        r_slices = [reward_array[:, ep] for ep in slice_episodes]
+        probs, bins = zip(*[
+            np.histogram(r, bins=n_bins, density=True, range=[0.0, 1.0]) for r
+            in r_slices
+        ])
+        bins = bins[0]
+        thetas = np.array([-np.log(p)/n_sites for p in probs])
+        thetas[thetas > 0.0] = 0.0
 
     n_skip = max(n_episodes // 500, 1)
     reward_array = reward_array[:, ::n_skip]
@@ -70,20 +72,29 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
     sns.set_style('darkgrid')
     #  fig, (ax, axtext) = plt.subplots(1, 2, figsize=(8*3/2, 7),
     #                                   gridspec_kw={'width_ratios': [2, 1]})
-    plt.figure(figsize=(8.5*7/2, 9))
-    ax = plt.subplot2grid((2, 7), (0, 0), colspan=2, rowspan=2)
-    axpost = plt.subplot2grid((2, 7), (0, 2), colspan=2, rowspan=2)
-    ax0 = plt.subplot2grid((2, 7), (0, 4), colspan=2, rowspan=1)
-    ax1 = plt.subplot2grid((2, 7), (1, 4), colspan=2, rowspan=1)
-    #  ax2 = plt.subplot2grid((2, 5), (1, 2), colspan=1, rowspan=1)
-    #  ax3 = plt.subplot2grid((2, 5), (1, 3), colspan=1, rowspan=1)
-
-    axtext = plt.subplot2grid((2, 7), (0, 6), colspan=1, rowspan=2)
+    if q_learning_subclass == 'WithReplayMemory':
+        plt.figure(figsize=(8.5*7/2, 9))
+        ax = plt.subplot2grid((2, 5), (0, 0), colspan=2, rowspan=2)
+        ax_hist = plt.subplot2grid((2, 5), (0, 2), colspan=2, rowspan=2)
+        #  ax0 = plt.subplot2grid((2, 7), (0, 4), colspan=2, rowspan=1)
+        #  ax1 = plt.subplot2grid((2, 7), (1, 4), colspan=2, rowspan=1)
+        axtext = plt.subplot2grid((2, 5), (0, 4), colspan=1, rowspan=2)
+    else:
+        plt.figure(figsize=(8.5*7/2, 9))
+        ax = plt.subplot2grid((2, 7), (0, 0), colspan=2, rowspan=2)
+        axpost = plt.subplot2grid((2, 7), (0, 2), colspan=2, rowspan=2)
+        ax0 = plt.subplot2grid((2, 7), (0, 4), colspan=2, rowspan=1)
+        ax1 = plt.subplot2grid((2, 7), (1, 4), colspan=2, rowspan=1)
+        #  ax2 = plt.subplot2grid((2, 5), (1, 2), colspan=1, rowspan=1)
+        #  ax3 = plt.subplot2grid((2, 5), (1, 3), colspan=1, rowspan=1)
+        axtext = plt.subplot2grid((2, 7), (0, 6), colspan=1, rowspan=2)
     for i in range(len(reward_array)):
         ax.scatter(x[::4], reward_array[i, ::4], c='k',
                    alpha=0.1, marker='.', s=3)
     ax.plot(eps, label='epsilon', c='orange')
     ax.plot(x, reward_mean)
+    #  for i in range(0, len(reward_array), len(reward_array)//3):
+    #      ax.plot(x, reward_array[i])
     #  ax.fill_between(x, y1, y2, alpha=0.3,
     #                  label=r'$\pm$ sample $\sigma$'
     #                  + f' (#samples = {n_arrays})')
@@ -116,47 +127,78 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
     #      f"{params['system_class']}"
     #  )
 
-    xs = 0.5*(bins[1:] + bins[:-1])
-    #  colors = sns.color_palette("hls", n_slices)
-    colors = sns.color_palette("coolwarm", n_slices)
-    for i in range(n_slices):
-        ax0.plot(xs, probs[i], color=colors[i],
-                 label=r'$t = {}$'.format(slice_episodes[i]))
-        ax1.plot(xs, thetas[i], color=colors[i])
-        #  ax.axvline(slice_episodes[i], c='gray', linestyle='--')
-    ax1.set_xlabel(r'$r$ (reward)')
-    ax1.set_ylabel(r'$\theta(t, r)$')
-    ax0.set_ylabel(r'$P(t, r)$')
-    ax0.legend(fontsize=7)
+    if q_learning_subclass == 'WithReplayMemory':
+        history_array = np.load(input_dir / 'NN_histories.npy')
+        hist_shape = history_array.shape
+        n_hist = hist_shape[2]
+        # shape is (3, n_arrays, len)
+        # we want to average over n_arrays
+        hist_average = history_array.mean(axis=1)
 
-    r1_best, r2_best = np.load(input_dir / 'post_episode_rewards__best.npy')
-    r1_final, r2_final = np.load(input_dir / 'post_episode_rewards__final.npy')
+        n_skip_hist = max(n_hist // 100, 1)
+        history_array_reduced = history_array[:, :, ::n_skip_hist]
+        x_reduced = range(n_hist)[::n_skip_hist]
 
-    params = info['parameters']
-    if params['system_class'] == 'LongRangeIsing':
-        #  initial_reward = info['initial_reward']
-        r1_trotter, r2_trotter = \
-            np.load(input_dir / 'post_episode_rewards__trotter.npy')
+        colors = sns.color_palette()
+        for i in range(hist_shape[1]):
+            ax_hist.scatter(x_reduced, history_array_reduced[0, i],
+                            c=colors[0], alpha=0.1, marker='.', s=3)
+            ax_hist.scatter(x_reduced, history_array_reduced[1, i],
+                            c=colors[1], alpha=0.1, marker='.', s=3)
+            ax_hist.scatter(x_reduced, history_array_reduced[2, i],
+                            c=colors[2], alpha=0.1, marker='.', s=3)
+        ax_hist.plot(hist_average[0], label='loss function (logcosh)',
+                     c=colors[0])
+        ax_hist.plot(hist_average[1], label='mean squared error',
+                     c=colors[1])
+        ax_hist.plot(hist_average[2], label='mean asbolute error',
+                     c=colors[2])
+        ax_hist.legend()
 
-    #  n_episodes = params['n_episodes']
+    else:
+        xs = 0.5*(bins[1:] + bins[:-1])
+        #  colors = sns.color_palette("hls", n_slices)
+        colors = sns.color_palette("coolwarm", n_slices)
+        for i in range(n_slices):
+            ax0.plot(xs, probs[i], color=colors[i],
+                     label=r'$t = {}$'.format(slice_episodes[i]))
+            ax1.plot(xs, thetas[i], color=colors[i])
+            #  ax.axvline(slice_episodes[i], c='gray', linestyle='--')
+        ax1.set_xlabel(r'$r$ (reward)')
+        ax1.set_ylabel(r'$\theta(t, r)$')
+        ax0.set_ylabel(r'$P(t, r)$')
+        ax0.legend(fontsize=7)
 
-    sns.set_style('darkgrid')
-    c = sns.color_palette("Set1", 8)
+        r1_best, r2_best = np.load(input_dir /
+                                   'post_episode_rewards__best.npy')
+        r1_final, r2_final = np.load(input_dir /
+                                     'post_episode_rewards__final.npy')
 
-    axpost.plot(r1_best, label='best protocol (absolute)', c=c[0])
-    axpost.plot(r2_best, label='best protocol (relative)', c=c[0],
-                linestyle='--')
-    #  plt.plot(r1_final, label='absolute fidelity (best final protocol))')
-    #  plt.plot(r2_final, label='relative fidelity (best final protocol))')
-    if params['system_class'] == 'LongRangeIsing':
-        axpost.plot(r1_trotter, label='Trotter (absolute)', c=c[1])
-        axpost.plot(r2_trotter, label='Trotter (relative)',
-                    c=c[1], linestyle='--')
+        params = info['parameters']
+        if params['system_class'] == 'LongRangeIsing':
+            #  initial_reward = info['initial_reward']
+            r1_trotter, r2_trotter = \
+                np.load(input_dir / 'post_episode_rewards__trotter.npy')
 
-    axpost.legend(fontsize=7)
-    axpost.set_xlabel(r'$n$ (applying the same protocol $n$ times)')
-    axpost.set_ylabel('Fidelity')
-    axpost.set_ylim([0, 1.01])
+        #  n_episodes = params['n_episodes']
+
+        sns.set_style('darkgrid')
+        c = sns.color_palette("Set1", 8)
+
+        axpost.plot(r1_best, label='best protocol (absolute)', c=c[0])
+        axpost.plot(r2_best, label='best protocol (relative)', c=c[0],
+                    linestyle='--')
+        #  plt.plot(r1_final, label='absolute fidelity (best final protocol))')
+        #  plt.plot(r2_final, label='relative fidelity (best final protocol))')
+        if params['system_class'] == 'LongRangeIsing':
+            axpost.plot(r1_trotter, label='Trotter (absolute)', c=c[1])
+            axpost.plot(r2_trotter, label='Trotter (relative)',
+                        c=c[1], linestyle='--')
+
+        axpost.legend(fontsize=7)
+        axpost.set_xlabel(r'$n$ (applying the same protocol $n$ times)')
+        axpost.set_ylabel('Fidelity')
+        axpost.set_ylim([0, 1.01])
 
     plt.savefig(input_dir / f'{plot_name}.pdf', format='pdf')
     plt.close()

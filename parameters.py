@@ -2,13 +2,14 @@ import math
 import __main__
 
 parameters = {
-    'n_sites': 3,
-    'n_steps': 4,
-    'time_segment': 1.0,
+    'n_sites': 6,
+    'n_steps': 6,
+    'time_segment': 100.0,
     'bc': 'open',
     #  'ferro' or 'random'
     'initial_state': 'random_product_state',
     #  'initial_state': 'antiferro',
+    #  'initial_state': 'ferro',
     #  'initial_state': None,
     #  'transmat_in_memory': False
     #  seed_env = 999
@@ -22,22 +23,22 @@ parameters = {
         #  g: x, h: z
         'g': 2.0,
         'h': 2.0,
-        'alpha': 1.0
+        'alpha': 0.0
     },
     'seed_initial_state': 42,
 
     # q_learning parameters:
-    'n_episodes': int(2e4),
+    'n_episodes': int(1e5),
     #  'n_episodes': 50,
     'learning_rate': 0.618,
     'epsilon_max': 1.0,
     'epsilon_min': 0.005,
     #  'epsilon_decay': 0.005**(1/0.9e5)
-    #  'n_replays': 100,
+    #  'n_replays': 200,
     #  'n_replays': 1,
     'n_replays': 100,
-    #  'replay_spacing': 200,
-    'replay_spacing': 100,
+    'replay_spacing': 200,
+    #  'replay_spacing': 100,
     #  'lam': 0.6
     'lam': 0.8
 }
@@ -62,13 +63,14 @@ parameters_vanilla = {
     'n_allqubit_actions': 9,
     #  One action is the sequence "one all-to-all gate + n_sites onequbit gate"
     #  n_actions = n_onequbit_actions**n_sites * n_allqubit_actions
-    'is_rerun': False
+    #  'is_rerun': False
+    'is_rerun': True
 }
 
 parameters_deep = {
     # --- for deep_q_learning:
     #  'model_update_spacing': 100,
-    'model_update_spacing': 500,
+    'model_update_spacing': 100,
     'max_Q_optimizer': 'NAG',
     'GD_eta': 0.6,
     'GD_gamma': 0.9,
@@ -83,7 +85,7 @@ parameters_deep = {
     'subclass': 'WithReplayMemory',
     #  'NN_optimizer': 'adam',
     'NN_optimizer': 'SGD',
-    'n_epochs': 3
+    'n_epochs': 1
 }
 parameters_deep['range_all'] = 2 * parameters['ham_params']['J'] \
     * parameters['time_segment'] / parameters['n_steps']
