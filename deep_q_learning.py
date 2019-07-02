@@ -14,6 +14,12 @@ print('Modules loaded')
 
 
 class DeepQLearning(object):
+    """Basic class for Deep Q-Learning.
+    Two Neural Networks are used for the Q-function. One for the policy (the
+    behaviour), and one for the target. (policy NN and target NN)
+    The target NN is frozen and periodically updated while the policy NN is
+    trained, in order to avoid convergence problems.
+    """
 
     def __init__(self,
                  n_episodes,
@@ -294,18 +300,19 @@ class DeepQLearning(object):
         return (a_max, q_max)
 
     def newton_action_update(self, action, state, use_target):
-        # Newton method
-        # We want to solve f(x) = 0 (here f = grad output, a vector)
-        # f(x) = f(x0) + M (x - x0)
-        # M = grad f(x0) is a matrix
-        # M[i] = grad f[i] = grad dout / dai
-        # -> M[i][j] = d (dout/dai) / daj = d^2out/dajdai = hess[j][i]
-        # M is the transpose of the hessian of output
-        # evaluate_hessian_action already returns the transpose
+        """Newton method
+        We want to solve f(x) = 0 (here f = grad output, a vector)
+        f(x) = f(x0) + M (x - x0)
+        M = grad f(x0) is a matrix
+        M[i] = grad f[i] = grad dout / dai
+        -> M[i][j] = d (dout/dai) / daj = d^2out/dajdai = hess[j][i]
+        M is the transpose of the hessian of output
+        evaluate_hessian_action already returns the transpose
 
-        # For a given a0, we solve f(x0) + M (x - x0) = 0
-        # 1. M y = - grad output (a_i): solve for y
-        # 2. a_i+1 = a_i + y
+        For a given a0, we solve f(x0) + M (x - x0) = 0
+        1. M y = - grad output (a_i): solve for y
+        2. a_i+1 = a_i + y
+        """
         input_ = self.env.process_action(state, action)
         grad = self.evaluate_gradient_action(input_, use_target)
         hess = self.evaluate_hessian_action(input_, use_target)
@@ -313,12 +320,13 @@ class DeepQLearning(object):
         return np.linalg.solve(hess, -grad)
 
     def NAG_action_update(self, action, state, use_target, update_vec):
-        # Nesterov accelerated gradient "Gradient ascent" (max instead of min)
-        # step: a <- a + v (usually - sign for descent)
-        # For usual GD: v = eta * grad_a J(a)
-        # With Momentum: v_t = gamma * v_{t-1} + eta * grad_a J(a)
-        # typically gamma = 0.0
-        # for NAG: v_t = gamma * v_{t-1} + eta * grad_a J(a + gamma * v_{t-1})
+        """Nesterov accelerated gradient "Gradient ascent" (max instead of min)
+        step: a <- a + v (usually - sign for descent)
+        For usual GD: v = eta * grad_a J(a)
+        With Momentum: v_t = gamma * v_{t-1} + eta * grad_a J(a)
+        typically gamma = 0.0
+        for NAG: v_t = gamma * v_{t-1} + eta * grad_a J(a + gamma * v_{t-1})
+        """
         update_vec *= self.GD_gamma
         input_ = self.env.process_action(state, action + update_vec)
         grad = self.evaluate_gradient_action(input_, use_target)
@@ -386,6 +394,11 @@ class DeepQLearning(object):
 
 
 class DeepQLearningWithTraces(DeepQLearning):
+    """Deep Q-Learning with the addition of eligibility traces.
+    Those are basically a compromise between n-step TD
+    for all n and Monte Carlo methods (with all steps).
+    The backward view is implemented.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -404,6 +417,7 @@ class DeepQLearningWithTraces(DeepQLearning):
         self.trace *= 0.0
         step = 0
         while not done:
+            #  use policy NN
             action = self.choose_action(mode, step)
             state = self.env.s
             next_state, reward, done, _ = self.env.step(action,
@@ -414,32 +428,21 @@ class DeepQLearningWithTraces(DeepQLearning):
             if not update:
                 step += 1
                 continue
-            # gradient instead of 1
             self.trace += self.evaluate_gradient_weights(
                 self.env.process_state_action(state, action)
             )
-            #  self.trace[state, action] += 1
-            # weights instead of q_matrix
-            #  USE BEHAVIOUR NN
+            #  use policy NN
             delta = - self.model.predict(
                 self.env.process_state_action(state, action)
             )[0][0]
-            #  delta = - self.q_matrix[state, action]
 
             delta += reward
             if not done:
-                #  newton method instead of max WITH TARGET NN
-                #  USE TARGET NN
-                #  delta += predict of next_state with best_action
+                # use target NN
+                # get_best_action also returns the corresponding Q-value
                 delta += self.get_best_action(next_state, use_target=True)[1]
-                #  delta += np.max(self.q_matrix[next_state])
-
-            #  modify weight of NN
-            #  USE BEHAVIOUR NN
-
             self.current_weights += learning_rate * delta * self.trace
             self.model.set_weights(self.current_weights)
-            #  self.q_matrix += learning_rate * delta * self.trace
             if not done:
                 self.trace *= self.lam
                 step += 1
@@ -473,6 +476,7 @@ Episode = namedtuple('Episode', ('action_sequence', 'state_sequence',
 
 
 class ReplayMemory(object):
+    """Replay memory that stores full episodes during the Q-learning"""
 
     def __init__(self, capacity):
         self.capacity = capacity
@@ -496,6 +500,9 @@ class ReplayMemory(object):
 
 
 class DQLWithReplayMemory(DeepQLearning):
+    """DQN with the addition of a replay memory.
+    This implementation is not compatible with eligibility traces.
+    """
     import random
 
     def __init__(self, capacity, sampling_size, NN_optimizer, n_epochs, *args,
@@ -589,7 +596,7 @@ class DQLWithReplayMemory(DeepQLearning):
         assert len(train) == self.batch_size, \
             'training data was not properly processed'
 
-        self.model.fit(train, labels, epochs=self.n_epochs)
+        self.model.fit(train, labels, epochs=self.n_epochs, verbose=2)
         for key in self.model.history.history:
             if key not in self.history:
                 self.history[key] = []

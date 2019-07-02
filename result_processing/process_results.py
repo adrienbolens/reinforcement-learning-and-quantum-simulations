@@ -14,6 +14,7 @@ output = Path('/data3/bolensadrien/output')
 clean_database()
 
 database_entries = read_database()
+yes_all = False
 for entry in database_entries:
     status = entry['status']
     raw_files_exist = entry.get('raw_files_exist', False)
@@ -191,9 +192,18 @@ for entry in database_entries:
         status = 'processed'
 
         answer = None
-        while answer not in ("yes", "no"):
-            answer = input(f"Delete the array folders and the slurm files? ")
-            if answer == "yes":
+        while answer not in ("yes", "no", "yes all"):
+            if yes_all:
+                answer = 'yes'
+            else:
+                answer = input("Delete the array folders"
+                               "and the slurm files? ")
+            if answer == "yes all":
+                yes_all = True
+                answer = "yes"
+            elif answer == "yes":
+                if yes_all:
+                    print('---> yes all')
                 run('rm -r ' + str(result_dir / 'array-*'), shell=True)
                 run('rm ' + str(result_dir / 'slurm-*.out'), shell=True)
                 run(['rm', result_dir / 'job_script_slurm.sh'])
@@ -202,7 +212,7 @@ for entry in database_entries:
                 raw_files_exist = True
                 pass
             else:
-                print("Please enter yes or no.")
+                print("Please enter 'yes', 'no', or 'yes all'.")
 
         info['n_completed_tasks'] = n_arrays
         info['total_hours_average'] = total_hours_average

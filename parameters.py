@@ -2,9 +2,9 @@ import math
 import __main__
 
 parameters = {
-    'n_sites': 6,
-    'n_steps': 6,
-    'time_segment': 100.0,
+    'n_sites': 3,
+    'n_steps': 4,
+    'time_segment': 1.0,
     'bc': 'open',
     #  'ferro' or 'random'
     'initial_state': 'random_product_state',
@@ -23,7 +23,7 @@ parameters = {
         #  g: x, h: z
         'g': 2.0,
         'h': 2.0,
-        'alpha': 0.0
+        'alpha': 3.0
     },
     'seed_initial_state': 42,
 
@@ -36,8 +36,8 @@ parameters = {
     #  'epsilon_decay': 0.005**(1/0.9e5)
     #  'n_replays': 200,
     #  'n_replays': 1,
-    'n_replays': 100,
-    'replay_spacing': 200,
+    'n_replays': 10,
+    'replay_spacing': 50,
     #  'replay_spacing': 100,
     #  'lam': 0.6
     'lam': 0.8
@@ -70,7 +70,7 @@ parameters_vanilla = {
 parameters_deep = {
     # --- for deep_q_learning:
     #  'model_update_spacing': 100,
-    'model_update_spacing': 100,
+    'model_update_spacing': 10,
     'max_Q_optimizer': 'NAG',
     'GD_eta': 0.6,
     'GD_gamma': 0.9,
@@ -80,8 +80,8 @@ parameters_deep = {
                      #  (20, 'relu'),
                      (1, 'sigmoid')],
     'n_initial_actions': 21,
-    'capacity': 800,
-    'sampling_size': 200,
+    'capacity': 100,
+    'sampling_size': 100,
     'subclass': 'WithReplayMemory',
     #  'NN_optimizer': 'adam',
     'NN_optimizer': 'SGD',

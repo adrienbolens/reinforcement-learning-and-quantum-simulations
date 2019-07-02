@@ -69,12 +69,12 @@ def submit_to_slurm(params):
 
     options = {
         "array": f"1-{n_arrays}",
-        #  "partition": "long",
-        "partition": "medium",
+        "partition": "long",
+        #  "partition": "medium",
         #  "partition": "short",
         "job-name": f'{job_index}_{file_name}',
-        #  "time": "4-00:00:00",
-        "time": "48:00:00",
+        "time": "4-00:00:00",
+        #  "time": "48:00:00",
         #  "time": "0:30:00",
         #  "mail-type": "END",
         #  "mem-per-cpu": "50000",
@@ -161,8 +161,12 @@ if __name__ == '__main__':
     #  for n_sites in range(3, 14):
     #      parameters['n_sites'] = n_sites
     #      submit_to_slurm(parameters)
-    #  for n in range(3, 12, 2):
+    #  for n in range(5, 30, 4):
     #      parameters['n_initial_actions'] = n
+    #      submit_to_slurm(parameters)
+    #  for n in range(5, 150, 20):
+    #      parameters['capacity'] = n
+    #      parameters['sampling_size'] = n
     #      submit_to_slurm(parameters)
     #  parameters['n_sites'] = 11
     #  parameters['time_segment'] = 1.0
