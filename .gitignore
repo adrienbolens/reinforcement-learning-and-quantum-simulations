@@ -5,3 +5,4 @@
 *.pyc
 *.swp
 *.pdf
+/result_processing/*pdf
