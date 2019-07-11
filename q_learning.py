@@ -1,15 +1,12 @@
 import random
 import numpy as np
 import sys
-#  import systems as sy
 import environments as envs
-#  from math import sqrt
 
 
 class QLearning(object):
 
     def __init__(self,
-                 #  environment,
                  n_episodes,
                  learning_rate,
                  epsilon_max,
@@ -22,12 +19,8 @@ class QLearning(object):
                  seed=None,
                  **other_params
                  ):
-        params = locals()
-        params.pop('self')
-        params.pop('other_params')
-        params.update(other_params)
-        #  self.env = environment
-        self.env = envs.CurrentGateStateEnv(**params, transmat_in_memory=False)
+        self.env = envs.CurrentGateStateEnv(system_class=system_class,
+                                            **other_params)
         self.system_class = system_class
         self.n_episodes = n_episodes
         self.lam = lam

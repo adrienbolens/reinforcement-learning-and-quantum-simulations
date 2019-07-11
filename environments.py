@@ -18,7 +18,7 @@ class QuantumEnv:
     -Description:
         Given an initial state, a Hamiltonian and a final time T, the purpose
         of the agent is to find a sequence of N gates that reproduces the time
-        evolution after a time T.
+        evolution after a time T = time_segment.
 
     -Obsevations: see subclasses.
         Main categories are:
@@ -48,26 +48,24 @@ class QuantumEnv:
     for the reward at t=T.
     """
 
-    def __init__(self, n_steps, time_segment, initial_state,
+    def __init__(self, n_steps,
+                 time_segment,
+                 initial_state,
+                 n_directions,
                  seed_initial_state=None,
-                 system_class='LongRangeIsing', store_gates=True,
                  **other_params):
-        params = locals()
-        params.pop('self')
-        params.pop('other_params')
-        params.update(other_params)
-        if system_class == 'SpSm':
-            self.system = sy.SpSm(**params)
-        elif system_class == 'LongRangeIsing':
-            self.system = sy.LongRangeIsing(**params)
-        else:
-            ValueError('System specified not implemented')
+
+        # self.system defined in subclass, as they have different
+        # store_gates values depending
+
         self.n_steps = n_steps
         self.time_segment = time_segment
         self.unitary_evolution = \
             expm(-1j * self.time_segment * self.system.hamiltonian)
         self.set_initial_state(seed_initial_state, initial_state)
 
+        # use single-qubit gates in one (z-only) or two (z and x) directions
+        self.n_directions = n_directions
         self.action_sequence = None
         self.lastaction = None
         self.s = None
@@ -186,28 +184,28 @@ class DiscreteQuantumEnv(QuantumEnv):
         There are M * n_steps states, where M is the number of available gates
         and n_steps is the number of steps (the "time" variable).
     """
-
-    def __init__(self, n_steps, time_segment, initial_state,
-                 n_oqbgate_parameters, n_directions, n_allqubit_actions,
-                 transmat_in_memory=False, seed_initial_state=None,
+    def __init__(self,
+                 n_oqbgate_parameters,
+                 n_allqubit_actions,
+                 system_class='LongRangeIsing',
+                 transmat_in_memory=False,
                  **other_params):
-        """
-        The final time T is set to time_segment.
-        The incremental time is 1/n_gates.
-        """
 
-        #  print(other_params)
-        QuantumEnv.__init__(self, n_steps, time_segment, initial_state,
-                            seed_initial_state, **other_params)
+        super().__init__(**other_params)
+        if system_class == 'SpSm':
+            self.system = sy.SpSm(store_gates=True, **other_params)
+        elif system_class == 'LongRangeIsing':
+            self.system = sy.LongRangeIsing(store_gates=True, **other_params)
+        else:
+            ValueError('System specified not implemented')
 
         self.transmat_in_memory = transmat_in_memory
-        self.n_directions = n_directions
         self.n_oqbgate_parameters = n_oqbgate_parameters
         #  # acting with a single-qubit gate in one or the other direction:
         #  self.n_onequbit_actions = n_oqbgate_parameters * n_directions
 
         #  # acting with a single-qubit gate in both directions:
-        self.n_onequbit_actions = n_oqbgate_parameters ** n_directions
+        self.n_onequbit_actions = n_oqbgate_parameters ** self.n_directions
         self.n_allqubit_actions = n_allqubit_actions
         #  self.nA = (self.n_onequbit_actions ** self.system.n_sites) * \
         #      n_allqubit_actions
@@ -401,7 +399,7 @@ class FullSequenceStateEnv(DiscreteQuantumEnv):
     """The state is represetend by the full sequence of gates"""
 
     def __init__(self, *arg, **kwarg):
-        DiscreteQuantumEnv.__init__(self, *arg, **kwarg)
+        super().__init__(*arg, **kwarg)
 
         self.nS = (1 - self.nA**(self.n_steps + 1)) // (1 - self.nA)
         self.observation_space = Discrete(self.nS)
@@ -458,7 +456,7 @@ class CurrentGateStateEnv(DiscreteQuantumEnv):
     gates and the current time"""
 
     def __init__(self, *arg, **kwarg):
-        DiscreteQuantumEnv.__init__(self, *arg, **kwarg)
+        super().__init__(*arg, **kwarg)
         self.nS = self.n_steps * self.nA + 1
         self.observation_space = Discrete(self.nS)
         if self.transmat_in_memory:
@@ -513,25 +511,29 @@ class ContinuousQuantumEnv(QuantumEnv):
     U = e^(-i* a*range * ham)
     """
 
-    def __init__(self, n_steps, time_segment, initial_state,
-                 n_directions, seed_initial_state,
-                 range_one=None, range_all=None,
+    def __init__(self,
+                 system_class='LongRangeIsing',
+                 range_one=None,
+                 range_all=None,
                  **other_params):
 
-        QuantumEnv.__init__(self, n_steps, time_segment, initial_state,
-                            seed_initial_state, store_gates=False,
-                            **other_params)
+        super().__init__(**other_params)
+        if system_class == 'SpSm':
+            self.system = sy.SpSm(store_gates=False, **other_params)
+        elif system_class == 'LongRangeIsing':
+            self.system = sy.LongRangeIsing(store_gates=False, **other_params)
+        else:
+            ValueError('System specified not implemented')
 
-        self.n_directions = n_directions
         if range_one is None:
-            if type(self.system).__name__ == 'LongRangeIsing':
-                range_one = \
-                    2 * self.system.ham_params['h'] * time_segment / n_steps
+            if system_class == 'LongRangeIsing':
+                range_one = (2 * self.system.ham_params['h']
+                             * self.time_segment / self.n_steps)
             else:
                 range_one = pi
         if range_all is None:
-            range_all = \
-                2 * self.system.ham_params['J'] * time_segment / n_steps
+            range_all = (2 * self.system.ham_params['J']
+                         * self.time_segment / self.n_steps)
 
         self.range_one = range_one
         self.range_all = range_all

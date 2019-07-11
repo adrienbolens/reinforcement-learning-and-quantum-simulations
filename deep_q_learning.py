@@ -47,11 +47,8 @@ class DeepQLearning(object):
                  seed=None,
                  **other_params
                  ):
-        params = locals()
-        params.pop('self')
-        params.pop('other_params')
-        params.update(other_params)
-        self.env = envs.ContinuousCurrentGateEnv(**params)
+        self.env = envs.ContinuousCurrentGateEnv(system_class=system_class,
+                                                 **other_params)
         self.system_class = system_class
         self.n_episodes = n_episodes
         self.lam = lam
