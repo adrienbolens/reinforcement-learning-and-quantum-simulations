@@ -13,7 +13,40 @@ from scipy.sparse.linalg import expm
 class QuantumEnv:
     """Basic environement. Contains only information concerning the system and
     the evolution (n_steps and time_segment), and basic methods.
-    Information concerning states and actions are in the subclasses."""
+    Information concerning states and actions are in the subclasses.
+
+    -Description:
+        Given an initial state, a Hamiltonian and a final time T, the purpose
+        of the agent is to find a sequence of N gates that reproduces the time
+        evolution after a time T.
+
+    -Obsevations: see subclasses.
+        Main categories are:
+            Discrete (for tabular Q-learning)
+            Continuous (for Deep QL)
+
+    -Actions:
+        Actions correspond to choosing a gate (or a set of gates)
+
+    -Rewards:
+        There is a reward of R at the end of the sequence where R physically
+        quantifies how close the final state is from the target state (e.g.
+        fidelity = |<phi_target|phi_final>|^2.
+        Only the state at the final time T is relevant.
+
+    ------------------------------------------
+    Physical states:
+        Not used explicitly in the QL algorithm, but needed for the
+        environement to properly return the rewards.
+        => related calculations are in the system.py module
+
+    (1) The initial state.
+    (2) The final state calculated with the exact Hamiltonian.
+    (3) The final state after applying the sequence of gates.
+
+    (1) and (2) are evaluated before the Q-learning, and (3) when asking
+    for the reward at t=T.
+    """
 
     def __init__(self, n_steps, time_segment, initial_state,
                  seed_initial_state=None,
@@ -136,52 +169,22 @@ class QuantumEnv:
 
 class DiscreteQuantumEnv(QuantumEnv):
     """
+    The number of available gates is fixed
+    <=> The parameters take discrete values.
+
     Use one of the following subclass:
         -FullSequenceState
         -CurrentGateState
 
-    Description:
-    Given an initial state, a Hamiltonian and a final time T, the purpose of
-    the agent is to find a sequence of N gates (chosen amongst a given set)
-    that reproduces the time evolution after a time T. Each gate acts during a
-    time dt=T/N.
+    FullSequenceState:
+        There are 1 + M + M**2 + ... + M**N = [1-M**(N+1)]/[1-M] states, where
+        M is the number of available gates, since a state are completely
+        characterized by the sequence of gates, given a fixed initial state.
+        (N=n_steps)
 
-    Obsevations:
-    (FullSequenceState)
-    There are 1 + M + M**2 + ... + M**N = [1-M**(N+1)]/[1-M] states, where M is
-    the number of available gates, since a state are completely characterized
-    by the sequence of gates, given a fixed initial state. (N=n_steps)
-    (CurrentGateState)
-    There are M * n_steps states, where M is the number of available gates
-    and n_steps is the number of steps (the "time" variable).
-
-    Actions:
-    Actions correspond to a gate or a set of gates
-
-    Rewards:
-    There is a reward of R at the end of the sequence where R physically
-    quantifies how close the final state is from the target state (e.g.
-    fidelity = |<phi_target|phi_final>|^2. What about trying less strict
-    quantities such as physical observables?). Only the state at the final
-    time T is relevant. Some gates might have some capped allowed number of
-    use: give negative rewards when exceeding this number.
-
-    Rendering: to be done.
-
-    The complete state of the environment is represented by:
-        [m1, m2, m3, ..., mN] where m1 = 0(no gate yet), ..., M
-        where mi = 0 => mj = 0 for all j<i
-
-    ------------------------------------------
-    Physical states:
-    Not used explicitly, but needed for the environement to properly return the
-    rewards.
-    (1) The initial state.
-    (2) The final state calculated with the exact Hamiltonian.
-    (3) The final state after applying the sequence of gates.
-
-    (1) and (2) should be evaluated before the Q-learning, and (3) when asking
-    for the reward at t=T.
+    CurrentGateState:
+        There are M * n_steps states, where M is the number of available gates
+        and n_steps is the number of steps (the "time" variable).
     """
 
     def __init__(self, n_steps, time_segment, initial_state,
@@ -579,11 +582,13 @@ class ContinuousQuantumEnv(QuantumEnv):
 
     def decode_onequbit_gate(self, site, a, kind):
         #  given -1< a< 1, return the gate
-        return self.system.onequbit_gate(site, a, kind)
+        a_scaled = a * self.range_one
+        return self.system.onequbit_gate(site, a_scaled, kind)
 
     def decode_allqubit_gate(self, a):
         #  given -1< a< 1, return the gate
-        return self.system.allqubit_gate(a, 'sxsx')
+        a_scaled = a * self.range_all
+        return self.system.allqubit_gate(a_scaled, 'sxsx')
 
     def random_action(self):
         return np.random.uniform(-1, 1, size=self.action_len)

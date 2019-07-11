@@ -107,7 +107,9 @@ for entry in database_entries:
                 info['rerun_path'] = results_info['rerun_path']
         n_episodes = params['n_episodes']
 
-        reward_array = np.empty((n_arrays, n_episodes), dtype=np.float32)
+        n_episodes_total = np.load(result_dir / array_dirs[0] /
+                                   'rewards.npy').shape[0]
+        reward_array = np.empty((n_arrays, n_episodes_total), dtype=np.float32)
         if with_history:
             history_array = np.empty((n_metrics,  n_arrays, len_history))
         q_chosen_array = np.array([])
@@ -196,7 +198,7 @@ for entry in database_entries:
             if yes_all:
                 answer = 'yes'
             else:
-                answer = input("Delete the array folders"
+                answer = input("Delete the array folders "
                                "and the slurm files? ")
             if answer == "yes all":
                 yes_all = True

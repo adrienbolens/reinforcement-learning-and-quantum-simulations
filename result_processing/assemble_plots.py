@@ -18,6 +18,7 @@ output = Path('/data3/bolensadrien/output')
 #  replot = True
 replot = False
 plot_name = 'plot'
+replot_name_list = [f'{n}_deep_q_learning' for n in list(range(212, 218))]
 
 system_class_list = []
 n_sites_list = []
@@ -35,6 +36,7 @@ for name in dir_names:
 
     if (replot
             #  or params.get('subclass', None) == 'WithReplayMemory'
+            #  or name in replot_name_list
             or not (result_dir / (plot_name + '.pdf')).is_file()):
         print('\n', f"{f'Producing plot for results in {result_dir}.':-^70}")
         create_plot(output, name)

@@ -4,10 +4,14 @@ import sys
 #  import systems as sy
 import environments as envs
 import tensorflow as tf
-import tensorflow.keras as keras
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
-import tensorflow.keras.backend as K
+#  import tensorflow.keras as keras
+#  from tensorflow.keras.models import Sequential
+#  from tensorflow.keras.layers import Dense
+#  import tensorflow.keras.backend as K
+import keras
+from keras.models import Sequential
+from keras.layers import Dense
+import keras.backend as K
 import itertools
 from collections import namedtuple
 print('Modules loaded')
@@ -15,10 +19,11 @@ print('Modules loaded')
 
 class DeepQLearning(object):
     """Basic class for Deep Q-Learning.
-    Two Neural Networks are used for the Q-function. One for the policy (the
-    behaviour), and one for the target. (policy NN and target NN)
-    The target NN is frozen and periodically updated while the policy NN is
-    trained, in order to avoid convergence problems.
+    Two Neural Networks are used for the Q-function.
+    One for the behavior-policy, and one for the target-policy.
+    (behavior NN and target NN)
+    The target NN is frozen and gets periodically updated with the parameters
+    of the behavior NN, while the behavior NN is continuously trained.
     """
 
     def __init__(self,
@@ -33,6 +38,7 @@ class DeepQLearning(object):
                  model_update_spacing,
                  system_class,
                  architecture,
+                 exploration='random',
                  max_Q_optimizer='NAG',
                  GD_eta=0.6,
                  GD_gamma=0.9,
@@ -53,6 +59,7 @@ class DeepQLearning(object):
         self.GD_eta = GD_eta
         self.GD_gamma = GD_gamma
         self.n_initial_actions = n_initial_actions
+        self.exploration = exploration
         #  self.list_q_chosen_actions = []
         #  self.list_q_discretized_actions = []
         print("self.n_initial_actions = ", self.n_initial_actions)
@@ -75,7 +82,9 @@ class DeepQLearning(object):
         #                       (1, 'sigmoid')]
         self.architecture = architecture
         print('Tensorflow verion: ', tf.__version__)
+        print('Tensorflow file: ', tf.__file__)
         print('Keras verion: ', keras.__version__)
+        print('Keras file: ', keras.__file__)
         self.model = Sequential()
         n, act = self.architecture[0]
         self.model.add(Dense(n, activation=act,
@@ -181,11 +190,11 @@ class DeepQLearning(object):
                 verbose = True
                 print(f'Episode {episode}: ')
             #  if episode % storage_spacing == 0:
-            #      mode_ = 'explore_and_store'
+            #      mode = 'explore_and_store'
             #  else:
-            #      mode_ = 'explore'
-            mode_ = 'explore'
-            reward = self.run_episode(verbose, mode=mode_)
+            #      mode = 'explore'
+            mode = 'explore'
+            reward = self.run_episode(verbose, mode=mode)
             if reward > self.best_encountered_reward:
                 self.best_encountered_reward = reward
                 self.best_encountered_actions = self.env.action_sequence
@@ -203,12 +212,24 @@ class DeepQLearning(object):
             if self.epsilon >= self.epsilon_min:
                 self.epsilon *= self.epsilon_decay
 
+        n_extra = 1000
+        extra_rewards = np.zeros(3 * n_extra)
+        for n in range(n_extra):
+            reward = self.run_episode(mode='greedy', update=True)
+            extra_rewards[n] = reward
+        for n in range(n_extra, 2*n_extra):
+            reward = self.run_episode(mode='explore', update=False)
+            extra_rewards[n] = reward
+        for n in range(2*n_extra, 3*n_extra):
+            reward = self.run_episode(mode='greedy', update=False)
+            extra_rewards[n] = reward
+
         print(f"Final epsilon: {self.epsilon:.2f}.\n")
         self.env.render()
         print(f'\nFidelity of run with final Q: {reward:.4f}')
         print(f'\nBest encountered fidelity: '
               f'{self.best_encountered_reward:.4f}')
-        return rewards
+        return np.append(rewards, extra_rewards)
 
     def replay_best_episode(self):
         for _ in range(self.n_replays):
@@ -340,8 +361,13 @@ class DeepQLearning(object):
             # With the probability of (1 - epsilon) take the best action in our
             # Q-table
             #  if random.uniform(0, 1) > self.epsilon:
+            if self.exploration != 'random':
+                raise NotImplementedError(
+                    'Only random exploration is implemented. Currently '
+                    f'exploration is {self.exploration}'
+                )
             if np.random.rand() > self.epsilon:
-                action, q_ = self.get_best_action(self.env.s)
+                action, q = self.get_best_action(self.env.s)
                 #  if mode == 'explore_and_store':
                 #      self.list_q_chosen_actions.append(q_)
                 #      self.list_q_discretized_actions.append(
@@ -356,7 +382,7 @@ class DeepQLearning(object):
         elif mode == 'replay':
             action = self.best_encountered_actions[step]
         elif mode == 'greedy':
-            action, q_ = self.get_best_action(self.env.s)
+            action, q = self.get_best_action(self.env.s)
             #  action = np.argmax(self.q_matrix[self.env.s])
         else:
             raise ValueError(f'The action selecting mode {mode} does not '
@@ -453,8 +479,14 @@ class DeepQLearningWithTraces(DeepQLearning):
     def choose_action(self, mode, step=0):
         if mode == 'explore' or mode == 'explore_and_store':
             # With the probability of (1 - epsilon) take the best action
+            if self.exploration != "random":
+                raise ValueError(
+                    'QL with eligibility traces only works with random'
+                    'exploration. Currently, exploration is '
+                    f'{self.exploration}.'
+                )
             if np.random.rand() > self.epsilon:
-                action, q_ = self.get_best_action(self.env.s)
+                action, q = self.get_best_action(self.env.s)
                 #  if mode == 'explore_and_store':
                 #      self.list_q_chosen_actions.append(q_)
                 #      self.list_q_discretized_actions.append(
@@ -554,7 +586,8 @@ class DQLWithReplayMemory(DeepQLearning):
             n_pushes = self.n_replays
         self.memory.push(episode, n_pushes)
 
-        self.optimize_model()
+        if update:
+            self.optimize_model()
 
         return total_reward
 
@@ -596,7 +629,7 @@ class DQLWithReplayMemory(DeepQLearning):
         assert len(train) == self.batch_size, \
             'training data was not properly processed'
 
-        self.model.fit(train, labels, epochs=self.n_epochs, verbose=2)
+        self.model.fit(train, labels, epochs=self.n_epochs, verbose=0)
         for key in self.model.history.history:
             if key not in self.history:
                 self.history[key] = []
@@ -609,6 +642,29 @@ class DQLWithReplayMemory(DeepQLearning):
         # ri is rtot for i = N-1 else 0
         # make array of right shape with all targets
         # train model with keras tools (fit)
+
+    def choose_action(self, mode, step=0):
+        if mode == 'replay':
+            action = self.best_encountered_actions[step]
+        elif mode == 'greedy':
+            action, q = self.get_best_action(self.env.s)
+        elif mode == 'explore' or mode == 'explore_and_store':
+            if self.exploration == 'random':
+                if np.random.rand() > self.epsilon:
+                    action, q = self.get_best_action(self.env.s)
+                else:
+                    action = self.env.random_action()
+            elif self.exploration == 'gaussian':
+                action, q = self.get_best_action(self.env.s)
+                # add gaussian fluctuation with std = 0.5*ε
+                # (ε = 1 -> 2σ = 1 -> 95% inside [-1, 1])
+                action += self.epsilon * 0.5 * np.random.randn(*action.shape)
+            else:
+                raise NotImplementedError
+        else:
+            raise ValueError(f'The action selecting mode {mode} does not '
+                             'exist.')
+        return action
 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
@@ -664,7 +720,8 @@ if __name__ == '__main__':
             **parameters
         )
     else:
-        raise NotImplementedError('subclass in parameters.py not recognized')
+        raise NotImplementedError(f"subclass {parameters['subclass']} in "
+                                  'parameters.py not recognized.')
 
     initial_action_sequence = q_learning.env.initial_action_sequence()
     initial_reward = q_learning.env.reward(initial_action_sequence)

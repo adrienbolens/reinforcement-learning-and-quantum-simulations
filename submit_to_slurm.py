@@ -113,7 +113,7 @@ def submit_to_slurm(params):
         f"{python_str.strip()}\n\n"
         f"cp {job_path / 'info.json'} $WORK_DIR\n"
         "module purge\n"
-        "module load intelpython3.2019.0.047\n"
+        "module load intelpython3\n"
         "cd $WORK_DIR\n"
         #  f"python {file_name}.py $SLURM_ARRAY_TASK_ID\n\n"
         f"{run_command}\n\n"

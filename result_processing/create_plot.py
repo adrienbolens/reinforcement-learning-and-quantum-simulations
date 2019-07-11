@@ -27,7 +27,7 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
     if params['system_class'] == 'LongRangeIsing':
         initial_reward = info['initial_reward']
     n_episodes = params['n_episodes']
-    reward_array = np.empty((n_arrays, n_episodes), dtype=np.float32)
+    #  reward_array = np.empty((n_arrays, n_episodes), dtype=np.float32)
     reward_array = np.load(input_dir / 'rewards.npy')
 
     #  max_final_reward = np.max(reward_array[:, -1])
@@ -47,16 +47,19 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
         thetas = np.array([-np.log(p)/n_sites for p in probs])
         thetas[thetas > 0.0] = 0.0
 
+    reward_mean = reward_array.mean(axis=0)
+    n_episodes_total = reward_array.shape[1]
+    n_extra_episodes = n_episodes_total - n_episodes
     n_skip = max(n_episodes // 500, 1)
-    reward_array = reward_array[:, ::n_skip]
+    reward_array_reduced = reward_array[:, :n_episodes][:, ::n_skip]
 
     x = range(n_episodes)[::n_skip]
     #  df = pd.DataFrame(reward_array, columns=x).melt(
     #      var_name='episode', value_name='reward')
-    reward_mean = reward_array.mean(axis=0)
     #  reward_std = reward_array.std(axis=0)
     #  reward_sem = sem(reward_array, axis=0)
 
+    reward_mean_reduced = reward_array_reduced.mean(axis=0)
     #  y1 = reward_mean + 1 * reward_std
     #  y2 = reward_mean - 1 * reward_std
 
@@ -75,7 +78,7 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
     if q_learning_subclass == 'WithReplayMemory':
         plt.figure(figsize=(8.5*7/2, 9))
         ax = plt.subplot2grid((2, 5), (0, 0), colspan=2, rowspan=2)
-        ax_hist = plt.subplot2grid((2, 5), (0, 2), colspan=2, rowspan=2)
+        ax2 = plt.subplot2grid((2, 5), (0, 2), colspan=2, rowspan=2)
         #  ax0 = plt.subplot2grid((2, 7), (0, 4), colspan=2, rowspan=1)
         #  ax1 = plt.subplot2grid((2, 7), (1, 4), colspan=2, rowspan=1)
         axtext = plt.subplot2grid((2, 5), (0, 4), colspan=1, rowspan=2)
@@ -88,13 +91,16 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
         #  ax2 = plt.subplot2grid((2, 5), (1, 2), colspan=1, rowspan=1)
         #  ax3 = plt.subplot2grid((2, 5), (1, 3), colspan=1, rowspan=1)
         axtext = plt.subplot2grid((2, 7), (0, 6), colspan=1, rowspan=2)
-    for i in range(len(reward_array)):
-        ax.scatter(x[::4], reward_array[i, ::4], c='k',
+
+    for i in range(len(reward_array_reduced)):
+        ax.scatter(x[::4], reward_array_reduced[i, ::4], c='k',
                    alpha=0.1, marker='.', s=3)
     ax.plot(eps, label='epsilon', c='orange')
-    ax.plot(x, reward_mean)
-    #  for i in range(0, len(reward_array), len(reward_array)//3):
-    #      ax.plot(x, reward_array[i])
+    ax.plot(x, reward_mean_reduced[:n_episodes])
+
+    # individual trajectories
+    for i in range(0, len(reward_array_reduced), len(reward_array_reduced)//2):
+        ax.plot(x, reward_array_reduced[i])
     #  ax.fill_between(x, y1, y2, alpha=0.3,
     #                  label=r'$\pm$ sample $\sigma$'
     #                  + f' (#samples = {n_arrays})')
@@ -128,32 +134,59 @@ def create_plot(parent_folder, dir_name, plot_name='plot'):
     #  )
 
     if q_learning_subclass == 'WithReplayMemory':
-        history_array = np.load(input_dir / 'NN_histories.npy')
-        hist_shape = history_array.shape
-        n_hist = hist_shape[2]
+        # change plot: now extra episodes
+
+        x_extra = list(range(n_extra_episodes))
+        #  for i in range(len(reward_array)):
+        #      ax2.scatter(x_extra, reward_array[i, n_episodes:], c='k',
+        #                  alpha=0.1, marker='.', s=3)
+        ax2.plot(x_extra, reward_mean[n_episodes:])
+
+        # individual trajectories
+        for i in range(0, len(reward_array), len(reward_array)//2):
+            ax2.plot(x_extra, reward_array[i, n_episodes:])
+        #  ax.fill_between(x, y1, y2, alpha=0.3,
+        #                  label=r'$\pm$ sample $\sigma$'
+        #                  + f' (#samples = {n_arrays})')
+        ax2.axhline(max_reward, label=f'maximal reward = {max_reward:.2f}',
+                    c='r')
+        if params['system_class'] == 'LongRangeIsing':
+            ax2.axhline(initial_reward,
+                        label='initial reward (Trotter)',
+                        c='r', linestyle='--')
+        ax2.set_ylim([0, 1.01])
+        ax2.set_xlim([0, n_extra_episodes])
+        ax2.set_xlabel(r'$t$ (episode)')
+        ax2.set_ylabel('reward')
+        ax2.legend()
+
+        #  history_array = np.load(input_dir / 'NN_histories.npy')
+        #  hist_shape = history_array.shape
+        #  n_hist = hist_shape[2]
+
         # shape is (3, n_arrays, len)
         # we want to average over n_arrays
-        hist_average = history_array.mean(axis=1)
+        #  hist_average = history_array.mean(axis=1)
 
-        n_skip_hist = max(n_hist // 100, 1)
-        history_array_reduced = history_array[:, :, ::n_skip_hist]
-        x_reduced = range(n_hist)[::n_skip_hist]
+        #  n_skip_hist = max(n_hist // 100, 1)
+        #  history_array_reduced = history_array[:, :, ::n_skip_hist]
+        #  x_reduced = range(n_hist)[::n_skip_hist]
 
         colors = sns.color_palette()
-        for i in range(hist_shape[1]):
-            ax_hist.scatter(x_reduced, history_array_reduced[0, i],
-                            c=colors[0], alpha=0.1, marker='.', s=3)
-            ax_hist.scatter(x_reduced, history_array_reduced[1, i],
-                            c=colors[1], alpha=0.1, marker='.', s=3)
-            ax_hist.scatter(x_reduced, history_array_reduced[2, i],
-                            c=colors[2], alpha=0.1, marker='.', s=3)
-        ax_hist.plot(hist_average[0], label='loss function (logcosh)',
-                     c=colors[0])
-        ax_hist.plot(hist_average[1], label='mean squared error',
-                     c=colors[1])
-        ax_hist.plot(hist_average[2], label='mean asbolute error',
-                     c=colors[2])
-        ax_hist.legend()
+        #  for i in range(hist_shape[1]):
+        #      ax2.scatter(x_reduced, history_array_reduced[0, i],
+        #                      c=colors[0], alpha=0.1, marker='.', s=3)
+        #      ax2.scatter(x_reduced, history_array_reduced[1, i],
+        #                      c=colors[1], alpha=0.1, marker='.', s=3)
+        #      ax2.scatter(x_reduced, history_array_reduced[2, i],
+        #                      c=colors[2], alpha=0.1, marker='.', s=3)
+        #  ax2.plot(hist_average[0], label='loss function (logcosh)',
+        #               c=colors[0])
+        #  ax2.plot(hist_average[1], label='mean squared error',
+        #               c=colors[1])
+        #  ax2.plot(hist_average[2], label='mean asbolute error',
+        #               c=colors[2])
+        #  ax2.legend()
 
     else:
         xs = 0.5*(bins[1:] + bins[:-1])

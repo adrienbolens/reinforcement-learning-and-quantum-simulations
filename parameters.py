@@ -1,10 +1,12 @@
 import math
 import __main__
 
+pi = math.pi
+
 parameters = {
     'n_sites': 3,
     'n_steps': 4,
-    'time_segment': 1.0,
+    'time_segment': 100.0,
     'bc': 'open',
     #  'ferro' or 'random'
     'initial_state': 'random_product_state',
@@ -64,19 +66,18 @@ parameters_vanilla = {
     #  One action is the sequence "one all-to-all gate + n_sites onequbit gate"
     #  n_actions = n_onequbit_actions**n_sites * n_allqubit_actions
     #  'is_rerun': False
-    'is_rerun': True
+    'is_rerun': False
 }
 
 parameters_deep = {
     # --- for deep_q_learning:
     #  'model_update_spacing': 100,
-    'model_update_spacing': 10,
+    'model_update_spacing': 20,
     'max_Q_optimizer': 'NAG',
     'GD_eta': 0.6,
     'GD_gamma': 0.9,
-    'range_one': math.pi,
-    'architecture': [(60, 'tanh'),
-                     (20, 'relu'),
+    'architecture': [(150, 'tanh'),
+                     (40, 'relu'),
                      #  (20, 'relu'),
                      (1, 'sigmoid')],
     'n_initial_actions': 21,
@@ -85,9 +86,17 @@ parameters_deep = {
     'subclass': 'WithReplayMemory',
     #  'NN_optimizer': 'adam',
     'NN_optimizer': 'SGD',
-    'n_epochs': 1
+    'n_epochs': 1,
+    'exploration': 'gaussian'
+    #  'exploration': 'random'
+    #  'range_one': math.pi
+    #  'range_one': 1.0,
+    #  'range_all': 1.0
 }
 parameters_deep['range_all'] = 2 * parameters['ham_params']['J'] \
+    * parameters['time_segment'] / parameters['n_steps']
+
+parameters_deep['range_one'] = 2 * parameters['ham_params']['h'] \
     * parameters['time_segment'] / parameters['n_steps']
 
 print('parameters.py was imported with __main__ = ', __main__.__file__)
