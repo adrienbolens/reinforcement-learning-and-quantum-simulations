@@ -24,20 +24,32 @@ The goal of the project is to __use reinforcement learning to find an optimal se
 
 # Description of the files:
 
-- main_DQL.py
-- main_qlearning.py
-- deep_q_learning.py
-- q_learning.py
-- models.py
-- environements.py
-- systems.py
-- discrete.py
+- `main_DQL.py`: main program when using a deep Q-learning algorithm
 
-- results
-  - view_results.ipynb
-  - process_results.py
-  - database.py
-  - status_databse.json
-  - info_database.py
-  - info_database.json
-  - plots/plots.py
+- `main_qlearning.py`: main program when using a tabular TD(\lambda) algorithm (Q-learning with eligibility traces)
+
+
+- `systems.py`: contains classes defining the physical system (e.g. it defines the target Hamiltonian, the quantum gates, and the matrix operations needed to calculate the dynamics.)
+
+- `environements.py`: contains classes defining different environments (e.g. how "actions" and "states" are defined. There are variations for both discrete and continuous problems)
+
+- `q_learning.py`: contains classes of various solvers using tabular Q-learning algorithms (e.g. TD(\lambda))
+
+
+- `deep_q_learning.py`: contains classes of various solvers using deep Q-networks (DQN)
+
+
+- `models.py`: contains classes for the neural networks used by `deep_q_learning.py`
+
+
+- `parameters.py`: contains a dictionary of all the parameters for the environement and the algorithms.
+
+
+- `results`: subdirectory containing tools to process and inspect/explore the restuls. The results themselves are heavy and stored locally.
+  - `process_results.py`: process the raw results obtained from the main programs into something that can be used easily.
+  - `plots/plots.py`: contains several functions that define plots to inspect the result data.
+  - `view_results.ipynb`: jupyter notebook used to plots various graphs describing the results conveniently.
+  - `database.py`: create and manage a database containing information about the status of the computations
+  - `status_databse.json`: the database
+  - `info_database.py`: manage a database containing the parameters and other useful information about the processed result data.
+  - `info_database.json`: the database.
