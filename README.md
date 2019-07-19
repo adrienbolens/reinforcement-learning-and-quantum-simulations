@@ -1,8 +1,9 @@
 
 # Q-learning applied to quantum digitial simulations.
 
-This repository contains the files that I used for my current research project.
+This repository contains the files and programs I have written for my current research project. The reinforcement learning algorithms and the rest of the code for this project were all coded from scratch (except for the neural networks: I use Keras and TensorFlow for them).
 
+## Motivations (in brief):
 In quantum computing, a [quantum gate](https://en.wikipedia.org/wiki/Quantum_logic_gate) is a basic operation (mathematically, a unitary matrix) applied to a small number of quantum bits (qubits).
 
 One promising short-term application of quantum computers is to simulate quantum many-body dynamics [3, 4]. However, it is a challenge to optimize the algorithms according to the resources available today.
