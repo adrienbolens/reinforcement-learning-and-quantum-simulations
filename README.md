@@ -13,7 +13,7 @@ But how can we find this sequence of gates?
 In some cases, there exist some systematic methods (e.g. the Trotter-Suzuki decomposition), but they usually fail on large time scales and require a unrealistically large amount of gates.
 
 ## A quantum compiler:
-The goal of the project is to __use reinforcement learning to find an optimal sequence of quantum gates__, to reproduce the dynamics of a given quantum many-body system.
+The goal of the project is to __use reinforcement learning to find an optimal sequence of quantum gates__, to reproduce the dynamics of a given quantum many-body system. We train an "agent" how to optimally choose a gate given the current state of the system.
 
 ![digital simulation](digital_simulation.png)
 
