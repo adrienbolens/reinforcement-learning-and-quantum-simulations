@@ -83,10 +83,10 @@ parameters_deep = {
         'algorithm': 'NAG',
         'momentum': 0.9,
         'learning_rate': 0.6,
-        'n_initial_actions': 21,
+        'n_initial_actions': 5,
         # was mistakenly set to 3 up to run 229:
-        'n_iterations': 6,
-        'convergence_threshold': 0.0005
+        'n_iterations': 10,
+        'convergence_threshold': 0.05
     },
     'architecture': [(150, 'tanh'),
                      (40, 'relu'),
@@ -104,9 +104,10 @@ parameters_deep = {
     #  'range_one': math.pi
     #  'range_one': 1.0,
     #  'range_all': 1.0
-    'n_extra_episodes': 3000,
+    'n_extra_episodes': 0,
     #  'n_extra_episodes': 3,
     'verify_argmax_q': False
+    #  'verify_argmax_q': True
 }
 parameters_deep['range_all'] = min(2 * parameters['ham_params']['J'] *
                                    parameters['time_segment'] /

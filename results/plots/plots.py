@@ -100,8 +100,8 @@ def plot_rewards_vs_episodes(path_to_data,
     if scatter:
         for i in range(len(reward_array)):
             ax.scatter(x[::n_skip_scatter], reward_array[i, ::n_skip_scatter],
-                       c='k', marker='.', s=2,
-                       alpha=min(50/n_runs, 0.1))
+                       c='k', marker='.', s=1.5,
+                       alpha=min(30/n_runs, 0.1))
 
     #  maximal reward
     ax.axhline(max_reward, label=rf'max $r={max_reward:.2f}$', c=c_vline)
@@ -112,7 +112,7 @@ def plot_rewards_vs_episodes(path_to_data,
 
     # individual runs
     for i in range(n_individual_runs):
-        ax.plot(x[::n_skip], reward_array[i, ::n_skip], alpha=0.7,
+        ax.plot(x[::n_skip], reward_array[i, ::n_skip], alpha=1.0,
                 c=cs[i % len(cs)])
 
     #  mean of rewards
@@ -123,6 +123,7 @@ def plot_rewards_vs_episodes(path_to_data,
     ax.set_xlim([0, n_episodes])
     ax.set_xlabel(r'$t$ (episode)')
     ax.set_ylabel('reward')
+    ax.set_title('Evolution of the episodic reward during training')
     ax.legend(loc='lower right')
 
 
@@ -259,6 +260,8 @@ def plot_comparison_of_rewards(paths_to_data,
     ax.xaxis.set_ticks_position('top')
     ax.set_xticklabels(df['index'], rotation=90)
     ax.set_ylim([0, 1])
+    ax.set_title('Comparison of rewards/fidelities accross different runs',
+                 y=1.08)
 
     #  # label above the bars:
     #  for x_value, y_value, label in zip(x, df['max_reward'], df['index']):
@@ -366,7 +369,7 @@ def plot_rewards_vs_extra_episodes(path_to_data,
     if scatter:
         for i in range(len(reward_array)):
             ax.scatter(x[::n_skip_scatter], reward_array[i, ::n_skip_scatter],
-                       c='k', marker='.', s=2,
+                       c='k', marker='.', s=1.7,
                        alpha=min(50/n_runs, 0.1))
 
     # individual runs
@@ -384,6 +387,7 @@ def plot_rewards_vs_extra_episodes(path_to_data,
         r'$t$ (extra episodes: no exploration / no update / neither)'
     )
     ax.set_ylabel('reward')
+    ax.set_title('Rewards obtained by the agent after being trained')
     ax.legend(loc='lower right')
 
 
@@ -456,6 +460,8 @@ def plot_reward_distribution(path_to_data,
     else:
         ax1.set_xlabel('reward')
     ax1.set_ylabel(r'$P(t, r)$')
+    ax1.set_title('Distribution of the rewards at given episodes during '
+                  'training')
     ax1.legend()
 
 
@@ -518,6 +524,8 @@ def plot_network_metrics(path_to_data,
 
     for hist, metric, c in zip(hist_average, metrics, colors):
         ax.plot(hist, label=metric, c=c)
+    ax.set_xlabel(r'$t$ (episode)')
+    ax.set_title('History of the metrics of the neural network')
     with plt.rc_context({'text.usetex': False}):
         ax.legend()
 
@@ -567,6 +575,8 @@ def plot_post_episode_rewards(path_to_data, ax=None):
     ax.set_xlabel(r'$n$ (applying the same sequence of gates $n$ times)')
     ax.set_ylabel('Fidelity')
     ax.set_ylim([0, 1.01])
+    ax.set_title('Fidelity obtained by repeating the best sequence found '
+                 'several times')
 
 
 def plot_q_arrays(path_to_data, n=100, ax=None):

@@ -1843,5 +1843,21 @@
     "submission_date": "2019-07-19 10:36:37.976558",
     "algorithm": "DQN_ReplayMemory",
     "raw_files_exist": false
+  },
+  {
+    "name": "242_deep_q_learning",
+    "status": "running",
+    "n_completed_tasks": 0,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-07-19 11:42:52.527460",
+    "algorithm": "DQN_ReplayMemory"
+  },
+  {
+    "name": "243_deep_q_learning",
+    "status": "running",
+    "n_completed_tasks": 0,
+    "n_submitted_tasks": 100,
+    "submission_date": "2019-07-19 11:42:57.602995",
+    "algorithm": "DQN_ReplayMemory"
   }
 ]
