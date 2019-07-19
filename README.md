@@ -31,7 +31,7 @@ The goal of the project is to __use reinforcement learning to find an optimal se
 
 - [`systems.py`](systems.py): contains classes defining the physical system (e.g. it defines the target Hamiltonian, the quantum gates, and the matrix operations needed to calculate the dynamics).
 
-- [`environements.py`](environements.py): contains classes defining different environments (e.g. how "actions" and "states" are defined. There are variations for both discrete and continuous problems).
+- [`environments.py`](environements.py): contains classes defining different environments (e.g. how "actions" and "states" are defined. There are variations for both discrete and continuous problems).
 
 - [`q_learning.py`](q_learning.py): contains classes defining tabular Q-learning algorithms (e.g. TD(λ)).
 
