@@ -5,12 +5,12 @@ import json
 import re
 from parameters import parameters, parameters_deep, parameters_vanilla
 import datetime
-from database import add_to_database, clean_database
+from results.database import add_to_database, clean_database
 
 clean_database()
 
-profile = False
-#  profile = True
+#  profile = False
+profile = True
 if len(sys.argv) < 2:
     print("Please specifiy the name of the .py file to execute.")
     sys.exit()
@@ -22,10 +22,16 @@ if file_name[-3:] == '.py':
 
 print(f'submit_to_slurm.py will submit the file {file_name}.py')
 
-if file_name == 'q_learning':
+if file_name == 'main_qlearning':
     parameters.update(parameters_vanilla)
-elif file_name == 'deep_q_learning':
+    output_folder_name = 'q_learning'
+    job_name = 'QLearning'
+elif file_name == 'main_DQL':
     parameters.update(parameters_deep)
+    output_folder_name = 'deep_q_learning'
+    job_name = 'DQL'
+else:
+    raise ValueError('Wrong file name.')
 
 
 if len(sys.argv) < 3:
@@ -52,9 +58,9 @@ def largest_existing_job_index():
 
 def submit_to_slurm(params):
     job_index = (largest_existing_job_index() or 0) + 1
-    job_name = f'{job_index}_{file_name}'
+    output_folder_name_indexed = f'{job_index}_' + output_folder_name
 
-    job_path = output / job_name
+    job_path = output / output_folder_name_indexed
     job_path = job_path.absolute()
     run(['mkdir', '-p', job_path])
 
@@ -72,13 +78,13 @@ def submit_to_slurm(params):
         "partition": "long",
         #  "partition": "medium",
         #  "partition": "short",
-        "job-name": f'{job_index}_{file_name}',
+        "job-name": f'{job_index}_{job_name}',
         "time": "4-00:00:00",
         #  "time": "48:00:00",
-        #  "time": "0:30:00",
+        #  "time": "0:10:00",
         #  "mail-type": "END",
         #  "mem-per-cpu": "50000",
-        "mem-per-cpu": "30000",
+        "mem-per-cpu": "5000",
         #  "mem-per-cpu": "500",
         "o": job_path / "slurm-%a.out"
     }
@@ -90,11 +96,18 @@ def submit_to_slurm(params):
         else:
             options_str += f"#SBATCH --{name}={value}\n"
 
-    python_files = ['q_learning', 'environments', 'systems', 'discrete',
-                    'deep_q_learning']
+    python_files = ['models', 'environments', 'systems', 'discrete']
+    if file_name == 'main_DQL':
+        python_files += ['deep_q_learning', 'main_DQL']
+    elif file_name == 'main_qlearning':
+        python_files += ['q_learning', 'main_qlearning']
+
     python_str = ""
+
+    # save current state of python modules :
     for name in python_files:
-        python_str += f"cp $(pwd)/{name}.py $WORK_DIR\n"
+        run(['cp', Path(__file__).absolute().parent / f'{name}.py', job_path])
+        python_str += f"cp {job_path}/{name}.py $WORK_DIR\n"
 
     if profile:
         run_command = (f'python -m cProfile -o file.prof {file_name}.py '
@@ -109,13 +122,11 @@ def submit_to_slurm(params):
         f"{options_str.strip()}\n\n"
         "WORK_DIR=/scratch/$USER/$SLURM_ARRAY_JOB_ID'_'$SLURM_ARRAY_TASK_ID\n"
         "mkdir -p $WORK_DIR\n"
-        #  "cp $(pwd)/*.py $WORK_DIR\n"
-        f"{python_str.strip()}\n\n"
+        f"{python_str}\n"
         f"cp {job_path / 'info.json'} $WORK_DIR\n"
         "module purge\n"
         "module load intelpython3\n"
         "cd $WORK_DIR\n"
-        #  f"python {file_name}.py $SLURM_ARRAY_TASK_ID\n\n"
         f"{run_command}\n\n"
         f"OUTPUT_DIR={job_path}/array-$SLURM_ARRAY_TASK_ID\n"
         "mkdir -p $OUTPUT_DIR\n"
@@ -139,16 +150,17 @@ def submit_to_slurm(params):
     ])
 
     alg = None
-    if re.match(r'\d*_q_learning', job_name):
+    if file_name == 'main_qlearning':
         alg = 'q_learning'
         if params['is_rerun']:
             alg = 'q_learning_rerun'
-    if re.match(r'\d*_deep_q_learning', job_name):
+    #  if re.match(r'\d*_deep_q_learning', output_folder_name_indexed):
+    if file_name == 'main_DQL':
         alg = 'deep_q_learning'
         if params['subclass'] == 'WithReplayMemory':
             alg = 'DQN_ReplayMemory'
     add_to_database({
-        'name': job_name,
+        'name': output_folder_name_indexed,
         'status': 'running',
         'n_completed_tasks': 0,
         'n_submitted_tasks': n_arrays,

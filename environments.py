@@ -191,13 +191,13 @@ class DiscreteQuantumEnv(QuantumEnv):
                  transmat_in_memory=False,
                  **other_params):
 
-        super().__init__(**other_params)
         if system_class == 'SpSm':
             self.system = sy.SpSm(store_gates=True, **other_params)
         elif system_class == 'LongRangeIsing':
             self.system = sy.LongRangeIsing(store_gates=True, **other_params)
         else:
             ValueError('System specified not implemented')
+        super().__init__(**other_params)
 
         self.transmat_in_memory = transmat_in_memory
         self.n_oqbgate_parameters = n_oqbgate_parameters
@@ -517,13 +517,13 @@ class ContinuousQuantumEnv(QuantumEnv):
                  range_all=None,
                  **other_params):
 
-        super().__init__(**other_params)
         if system_class == 'SpSm':
             self.system = sy.SpSm(store_gates=False, **other_params)
         elif system_class == 'LongRangeIsing':
             self.system = sy.LongRangeIsing(store_gates=False, **other_params)
         else:
             ValueError('System specified not implemented')
+        super().__init__(**other_params)
 
         if range_one is None:
             if system_class == 'LongRangeIsing':
@@ -620,6 +620,16 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
         #  the last states have step = n_steps - 1
         done = (step >= self.n_steps - 1)
         return ((step, action), done)
+
+    def get_n_inputs(self) -> int:
+        """return the number of input neurons for the NN"""
+        return self.n_steps + 2 * self.action_len
+
+    def get_state_len(self) -> int:
+        return self.n_steps + self.action_len
+
+    def get_action_len(self) -> int:
+        return self.action_len
 
     def process_state_action(self, state, action=None, reshape=True):
         if action is None:

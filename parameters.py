@@ -4,7 +4,7 @@ import __main__
 pi = math.pi
 
 parameters = {
-    'n_sites': 3,
+    'n_sites':  3,
     'n_steps': 4,
     'time_segment': 100.0,
     'bc': 'open',
@@ -31,7 +31,7 @@ parameters = {
 
     # q_learning parameters:
     'n_episodes': int(1e5),
-    #  'n_episodes': 50,
+    #  'n_episodes': 10,
     'learning_rate': 0.618,
     'epsilon_max': 1.0,
     'epsilon_min': 0.005,
@@ -42,7 +42,8 @@ parameters = {
     'replay_spacing': 50,
     #  'replay_spacing': 100,
     #  'lam': 0.6
-    'lam': 0.8
+    #  was called `lam` before (λ)
+    'trace_decay_rate': 0.8
 }
 #  epsilon_decay is such that epsilon_min is reached after pp*100% of the
 #  episodes
@@ -65,39 +66,55 @@ parameters_vanilla = {
     'n_allqubit_actions': 9,
     #  One action is the sequence "one all-to-all gate + n_sites onequbit gate"
     #  n_actions = n_onequbit_actions**n_sites * n_allqubit_actions
-    #  'is_rerun': False
     'is_rerun': False
+    #  'is_rerun': True
 }
+
+if parameters_vanilla['is_rerun']:
+    parameters_vanilla['rerun_path'] = \
+        'data3/bolensadrien/output/132_q_learning'
+
 
 parameters_deep = {
     # --- for deep_q_learning:
     #  'model_update_spacing': 100,
     'model_update_spacing': 20,
-    'max_Q_optimizer': 'NAG',
-    'GD_eta': 0.6,
-    'GD_gamma': 0.9,
+    'max_q_optimizer': {
+        'algorithm': 'NAG',
+        'momentum': 0.9,
+        'learning_rate': 0.6,
+        'n_initial_actions': 21,
+        # was mistakenly set to 3 up to run 229:
+        'n_iterations': 6,
+        'convergence_threshold': 0.0005
+    },
     'architecture': [(150, 'tanh'),
                      (40, 'relu'),
                      #  (20, 'relu'),
                      (1, 'sigmoid')],
-    'n_initial_actions': 21,
     'capacity': 100,
     'sampling_size': 100,
+    #  'sampling_size': 1,
     'subclass': 'WithReplayMemory',
     #  'NN_optimizer': 'adam',
     'NN_optimizer': 'SGD',
     'n_epochs': 1,
-    'exploration': 'gaussian'
-    #  'exploration': 'random'
+    'exploration': 'gaussian',
+    #  'exploration': 'uniform'
     #  'range_one': math.pi
     #  'range_one': 1.0,
     #  'range_all': 1.0
+    'n_extra_episodes': 3000,
+    #  'n_extra_episodes': 3,
+    'verify_argmax_q': False
 }
-parameters_deep['range_all'] = 2 * parameters['ham_params']['J'] \
-    * parameters['time_segment'] / parameters['n_steps']
+parameters_deep['range_all'] = min(2 * parameters['ham_params']['J'] *
+                                   parameters['time_segment'] /
+                                   parameters['n_steps'], 1.0)
 
-parameters_deep['range_one'] = 2 * parameters['ham_params']['h'] \
-    * parameters['time_segment'] / parameters['n_steps']
+parameters_deep['range_one'] = min(2 * parameters['ham_params']['h'] *
+                                   parameters['time_segment'] /
+                                   parameters['n_steps'], pi)
 
 print('parameters.py was imported with __main__ = ', __main__.__file__)
 #  if __main__.__file__ == 'deep_q_learning.py':
