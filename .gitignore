@@ -9,3 +9,4 @@ results/.old/*
 *.pdf
 /result_processing/*pdf
 /result_processing/plots/*
+*.ipynb
