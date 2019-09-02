@@ -5,8 +5,8 @@ pi = math.pi
 
 parameters = {
     'n_sites':  3,
-    'n_steps': 4,
-    'time_segment': 100.0,
+    'n_steps': 6,
+    'time_segment': 1.0,
     'bc': 'open',
     #  'ferro' or 'random'
     'initial_state': 'random_product_state',
@@ -28,6 +28,7 @@ parameters = {
         'alpha': 3.0
     },
     'seed_initial_state': 42,
+    #  'seed_initial_state': 0,
 
     # q_learning parameters:
     'n_episodes': int(1e5),
@@ -43,7 +44,7 @@ parameters = {
     #  'replay_spacing': 100,
     #  'lam': 0.6
     #  was called `lam` before (λ)
-    'trace_decay_rate': 0.8
+    #  'trace_decay_rate': 0.8
 }
 #  epsilon_decay is such that epsilon_min is reached after pp*100% of the
 #  episodes
@@ -83,15 +84,31 @@ parameters_deep = {
         'algorithm': 'NAG',
         'momentum': 0.9,
         'learning_rate': 0.6,
-        'n_initial_actions': 5,
+        'n_initial_actions': 15,
         # was mistakenly set to 3 up to run 229:
         'n_iterations': 10,
-        'convergence_threshold': 0.05
+        'convergence_threshold': 0.005,
+        'clip_action': False
+        #  'clip_action': True
     },
+
+    #  'network_type': 'LSTM',
+    'network_type': 'Dense',
+
+    'env_type': 'EnergyMinimizer',
+    #  'architecture': {'LSTM': [5, 1], 'activation': None},
     'architecture': [(150, 'tanh'),
                      (40, 'relu'),
-                     #  (20, 'relu'),
-                     (1, 'sigmoid')],
+                     (20, 'relu'),
+                     (1, None)],
+
+    #  'env_type': 'DynamicalEvolution',
+    #  'architecture': {'LSTM': [5, 1], 'activation': 'sigmoid'},
+    #  'architecture': [(150, 'tanh'),
+    #                   (40, 'relu'),
+    #                   (20, 'relu'),
+    #                   (1, 'sigmoid')],
+
     'capacity': 100,
     'sampling_size': 100,
     #  'sampling_size': 1,
@@ -102,20 +119,20 @@ parameters_deep = {
     'exploration': 'gaussian',
     #  'exploration': 'uniform'
     #  'range_one': math.pi
-    #  'range_one': 1.0,
-    #  'range_all': 1.0
+    'range_all': 0.5,
+    'range_one': 1.0,
+    #  'n_extra_episodes': 3000,
     'n_extra_episodes': 0,
-    #  'n_extra_episodes': 3,
     'verify_argmax_q': False
     #  'verify_argmax_q': True
 }
-parameters_deep['range_all'] = min(2 * parameters['ham_params']['J'] *
-                                   parameters['time_segment'] /
-                                   parameters['n_steps'], 1.0)
+#  parameters_deep['range_all'] = min(2 * parameters['ham_params']['J'] *
+#                                     parameters['time_segment'] /
+#                                     parameters['n_steps'], 1.0)
 
-parameters_deep['range_one'] = min(2 * parameters['ham_params']['h'] *
-                                   parameters['time_segment'] /
-                                   parameters['n_steps'], pi)
+#  parameters_deep['range_one'] = min(2 * parameters['ham_params']['h'] *
+#                                     parameters['time_segment'] /
+#                                     parameters['n_steps'], pi)
 
 print('parameters.py was imported with __main__ = ', __main__.__file__)
 #  if __main__.__file__ == 'deep_q_learning.py':

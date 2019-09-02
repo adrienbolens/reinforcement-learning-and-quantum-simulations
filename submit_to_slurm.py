@@ -79,12 +79,13 @@ def submit_to_slurm(params):
         #  "partition": "medium",
         #  "partition": "short",
         "job-name": f'{job_index}_{job_name}',
-        "time": "4-00:00:00",
+        "time": "5-00:00:00",
         #  "time": "48:00:00",
-        #  "time": "0:10:00",
+        #  "time": "0:30:00",
         #  "mail-type": "END",
         #  "mem-per-cpu": "50000",
-        "mem-per-cpu": "5000",
+        "mem-per-cpu": "10000",
+        #  "mem-per-cpu": "5000",
         #  "mem-per-cpu": "500",
         "o": job_path / "slurm-%a.out"
     }
@@ -96,7 +97,7 @@ def submit_to_slurm(params):
         else:
             options_str += f"#SBATCH --{name}={value}\n"
 
-    python_files = ['models', 'environments', 'systems', 'discrete']
+    python_files = ['models', 'environments', 'systems']
     if file_name == 'main_DQL':
         python_files += ['deep_q_learning', 'main_DQL']
     elif file_name == 'main_qlearning':
@@ -125,13 +126,14 @@ def submit_to_slurm(params):
         f"{python_str}\n"
         f"cp {job_path / 'info.json'} $WORK_DIR\n"
         "module purge\n"
-        "module load intelpython3\n"
+        "module load intelpython3.2019.0.047\n"
         "cd $WORK_DIR\n"
         f"{run_command}\n\n"
         f"OUTPUT_DIR={job_path}/array-$SLURM_ARRAY_TASK_ID\n"
         "mkdir -p $OUTPUT_DIR\n"
         f"cp ./results_info.json $OUTPUT_DIR\n"
         "cp ./*.npy $OUTPUT_DIR\n"
+        "cp ./*.csv $OUTPUT_DIR\n"
         "cp ./*.txt $OUTPUT_DIR\n"
         f"{copy_prof_files}"
         "cd\n"
@@ -170,8 +172,8 @@ def submit_to_slurm(params):
 
 
 if __name__ == '__main__':
-    #  for n_sites in range(3, 14):
-    #      parameters['n_sites'] = n_sites
+    #  for t in [1.0, 1.25, 1.5, 1.75, 2.0, 5.0, 10.0, 100.0]:
+    #      parameters['time_segment'] = t
     #      submit_to_slurm(parameters)
     #  for n in range(5, 30, 4):
     #      parameters['n_initial_actions'] = n

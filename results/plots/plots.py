@@ -26,6 +26,7 @@ def plot_rewards_vs_episodes(path_to_data,
                              n_x_scatter=120,
                              n_individual_runs=2,
                              n_slices=0,
+                             yrange=[0, 1.01],
                              ax=None):
     """
     Plot of the rewards during training as a function of the training episodes.
@@ -119,17 +120,133 @@ def plot_rewards_vs_episodes(path_to_data,
     ax.plot(x[::n_skip], reward_mean[::n_skip], c=c_mean,
             label=r'mean $r$')
 
-    ax.set_ylim([0, 1.01])
+    ax.set_ylim(yrange)
     ax.set_xlim([0, n_episodes])
     ax.set_xlabel(r'$t$ (episode)')
     ax.set_ylabel('reward')
     ax.set_title('Evolution of the episodic reward during training')
-    ax.legend(loc='lower right')
+    ax.annotate(path_to_data.name, (0.0, 0.95), xycoords='axes fraction')
+
+
+def plot_energy_vs_episodes(path_to_data,
+                            n_x=None,
+                            scatter=True,
+                            n_x_scatter=120,
+                            n_individual_runs=2,
+                            n_slices=0,
+                            yrange=None,
+                            gs_energy=-7.817385707357522,
+                            ax=None):
+    """
+    Plot of the rewards during training as a function of the training episodes.
+    For each episode, the mean over all runs is plotted. In addition, a scatter
+    plot of individual runs can also be plotted. The exploration schedule and a
+    horizontal line showing the maximum reward are also plotted.  (As well as
+    one for the initial reward for some system, e.g. the Ising model)
+
+    Args
+    ----
+    path_to_data (pathlib.Path)
+    n_x (int): the number of episodes to consider for the plot of the mean
+    scatter (bool): whether or not to add the scatter plot
+    n_x_scatter (int): the number of episodes to consider for the scatter plot
+        (a too high number can result in a heavy file)
+    n_individual_runs (int)
+    ax (matplotlib.axes.Axes)
+    """
+
+    if ax is None:
+        ax = plt.gca()
+
+    #  with open(path_to_data / 'info.json') as f:
+    #      info = json.load(f)
+    info = info_dict[path_to_data.name]
+
+    params = info['parameters']
+    n_episodes = params['n_episodes']
+    n_runs = info['n_completed_tasks']
+
+    #  if params['system_class'] == 'LongRangeIsing':
+    #      initial_reward = info['initial_reward']
+
+    reward_array = np.load(path_to_data / 'rewards.npy')[:, :n_episodes]
+    if reward_array.shape[0] != n_runs:
+        raise ValueError('`n_completed_tasks` in `info.json` does not match '
+                         'the shape of `rewards.npy`.')
+
+    min_energy = -np.max(reward_array)
+    xx, yy = np.argwhere(reward_array == -min_energy)[0]
+    print(xx, yy)
+    print(np.max(reward_array[xx]))
+    print(np.max(reward_array))
+
+    energy_mean = -reward_array.mean(axis=0)
+    eps_max = params['epsilon_max']
+    eps_min = params['epsilon_min']
+    eps_decay = params['epsilon_decay']
+    eps = [max(eps_min, eps_max * eps_decay**i) for i in range(n_episodes)]
+
+    x = range(n_episodes)
+    if n_x is None:
+        n_skip = 1
+    else:
+        n_skip = max(n_episodes // n_x, 1)
+    n_skip_scatter = max(n_episodes // n_x_scatter, 1)
+
+    #  Use colors of the ggplot style, even if global style is different
+    with plt.style.context(('ggplot')):
+        cs = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    c_eps = cs[4]
+    c_mean = cs[1]
+    c_vline = cs[0]
+    cs = [c for i, c in enumerate(cs) if i not in [0, 1, 4]]
+    #  cs = sns.color_palette()[4:]
+
+    #  slices used in the distribution plot:
+    if n_slices > 0:
+        slice_episodes = np.linspace(0, n_episodes-1, n_slices).astype(int)
+        for ep in slice_episodes:
+            ax.axvline(ep, c='gray', linestyle='--', alpha=0.7)
+
+    #  exploration schedule
+    ax.plot(eps, label=r'$\varepsilon$', c=c_eps)
+
+    #  scatter of all rewards
+    if scatter:
+        for i in range(len(reward_array)):
+            ax.scatter(x[::n_skip_scatter], -reward_array[i, ::n_skip_scatter],
+                       c='k', marker='.', s=1.5,
+                       alpha=min(30/n_runs, 0.1))
+
+    #  maximal reward
+    ax.axhline(min_energy, label=rf'max $r={min_energy:.2f}$', c=c_vline)
+    #  initial reward (Trotter)
+    ax.axhline(gs_energy, label=rf'GS energy $r={gs_energy:.2f}$',
+               c=c_vline, linestyle='--')
+
+    # individual runs
+    for i in list(range(n_individual_runs)) + [xx]:
+        print(i)
+        ax.plot(x[::n_skip], -reward_array[i, ::n_skip], alpha=1.0,
+                c=cs[i*2 % len(cs)])
+
+    #  mean of rewards
+    ax.plot(x[::n_skip], energy_mean[::n_skip], c=c_mean,
+            label=r'mean $r$')
+
+    ax.set_ylim(yrange)
+    ax.set_xlim([0, n_episodes])
+    ax.set_xlabel(r'$t$ (episode)')
+    ax.set_ylabel('expected value of energy')
+    ax.set_title('Evolution of the episodic final energy during training')
+    ax.annotate(path_to_data.name, (0.0, 0.95), xycoords='axes fraction')
 
 
 def plot_comparison_of_rewards(paths_to_data,
                                class_def=None,
                                param_filter=None,
+                               with_legend=True,
+                               reward_range=[0, 1],
                                ax=None):
     """
     Barplot of the key values for `different` datasets, in order to compare
@@ -140,7 +257,7 @@ def plot_comparison_of_rewards(paths_to_data,
 
     Args
     ----
-    path_to_data (pathlib.Path)
+    paths_to_data (list of pathlib.Path)
 
     class_def (list): List of keys of the `parameters` dictionary in info.json
         (or tuples of keys for nested dictionaries) . The list defines how to
@@ -152,6 +269,8 @@ def plot_comparison_of_rewards(paths_to_data,
         param_filter[key]` are considered, for all the keys in param_filter.
         (`parameters` is a dictionary found in info.json of the dataset)
         E.g. param_filter = {'subclass': 'WithReplayMemory'}
+
+    with_legend (bool)
 
     ax (matplotlib.axes.Axes)
     """
@@ -168,6 +287,195 @@ def plot_comparison_of_rewards(paths_to_data,
     final_rewards = []
     max_rewards = []
     initial_rewards = []
+    classes = []
+
+    def get_param(param_dict, key, na_value=np.nan):
+        if type(key) == tuple:
+            if len(key) == 1:
+                return param_dict.get(key[0], na_value)
+            else:
+                if key[0] in param_dict:
+                    return get_param(param_dict[key[0]], key[1:])
+                else:
+                    return na_value
+        else:
+            return param_dict.get(key, na_value)
+
+    for path in paths_to_data:
+        if not path.is_dir():
+            continue
+        #  with open(path / 'info.json') as f:
+        #      info = json.load(f)
+        info = info_dict[path.name]
+        params = info['parameters']
+        for p, value in param_filter.items():
+            if type(value) is list:
+                if get_param(params, p) not in value:
+                    break
+            else:
+                if get_param(params, p) != value:
+                    break
+        else:
+            data_indices.append(re.search(r'\d+', path.name).group())
+            n_episodes = params['n_episodes']
+            reward_array = np.load(path / 'rewards.npy')[:, :n_episodes]
+            final_rewards.append(reward_array[:, -1].mean())
+            max_rewards.append(np.max(reward_array))
+            initial_rewards.append(info['initial_reward'])
+            classes.append(tuple(get_param(params, p) for p in class_def))
+
+    df = pd.DataFrame({'index': data_indices,
+                       'final_reward': final_rewards,
+                       'max_reward': max_rewards,
+                       'initial_reward': initial_rewards,
+                       'class': classes}).sort_values(by=['class', 'index'])
+    #  , how=lambda x: (x is None, x))
+
+    classes = sorted(list(set(classes)))
+
+    with plt.style.context(('ggplot')):
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 2
+
+    print(classes)
+    colors = sns.color_palette(n_colors=len(classes))
+
+    amounts = [0.45, 1.0]
+    colors_all = [[lighten_color(c, a) for c in colors] for a in amounts]
+    c_dicts = [dict(zip(classes, colors)) for colors in colors_all]
+
+    x = range(len(df))
+    #  features to plot from bottom to top
+    features = ['initial_reward', 'max_reward']
+    tops = [df[feat].values for feat in features]
+    bottoms = [np.zeros(len(df))] + tops[:-1]
+
+    for bottom, top, c_dict in zip(bottoms, tops, c_dicts):
+        ax.bar(x=x, height=top-bottom, bottom=bottom,
+               color=list(map(c_dict.get, df['class'])))
+
+    ax.bar(x=x, height=np.zeros(len(df)), bottom=df['final_reward'],
+           edgecolor='k')
+
+    ax.set_xticks(x)
+    ax.xaxis.set_ticks_position('top')
+    ax.set_xticklabels(df['index'], rotation=90)
+    ax.set_ylim(reward_range)
+    ax.set_title('Comparison of rewards/fidelities accross different runs',
+                 y=1.08)
+
+    #  # label above the bars:
+    #  for x_value, y_value, label in zip(x, df['max_reward'], df['index']):
+    #      # Number of points between bar and label
+    #      space = 5
+    #      # Vertical alignment (for positive values)
+    #      va = 'bottom'
+    #      # Create annotation
+    #      ax.annotate(
+    #          label,
+    #          (x_value, y_value),
+    #          xytext=(0, space),
+    #          textcoords="offset points",
+    #          ha='center',
+    #          va=va)
+
+    if not with_legend:
+        return None
+
+    custom_lines = [Line2D([0], [0], color=c_dicts[1][cl], lw=4)
+                    for cl in classes]
+
+    short_name = {'n_steps': 'steps',
+                  'n_sites': 'sites',
+                  'time_segment': 't',
+                  'alpha': r'$\alpha$'}
+
+    class_params = [short_name.get(p[-1], p[-1]) if type(p) == tuple
+                    else short_name.get(p, p) for p in class_def]
+
+    label_format = {'float': '{0}: {1:.2f}'}
+    labels = [str(', '.join(
+        [label_format.get(type(value), '{0}: {1}').format(param, value)
+         for param, value in zip(class_params, cl)]
+    )) for cl in classes]
+
+    #  labels = [l.replace('_', '\_') for l in labels]
+    legend_colors = ax.legend(custom_lines, labels, loc='lower left')
+
+    labels_reward = ['max reward', 'init. reward', 'final reward (mean)']
+    label_colors = reversed(['k'] +
+                            [lighten_color(colors[0], a) for a in amounts])
+    lws = [10, 10, 1]
+    custom_lines = [Line2D([0], [0], color=c, lw=lw)
+                    for c, lw in zip(label_colors, lws)]
+
+    ax.legend(custom_lines, labels_reward, loc='lower right')
+    ax.add_artist(legend_colors)
+
+
+def lighten_color(color, amount=0.5):
+    """
+    Lightens the given color by multiplying (1-luminosity) by the given amount.
+    Input can be matplotlib color string, hex string, or RGB tuple.
+
+    Examples:
+    >> lighten_color('g', 0.3)
+    >> lighten_color('#F034A3', 0.6)
+    >> lighten_color((.3,.55,.1), 0.5)
+    """
+
+    try:
+        c = mc.cnames[color]
+    except Exception:
+        c = color
+    c = colorsys.rgb_to_hls(*mc.to_rgb(c))
+    return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
+
+
+def plot_rewards_vs_one_parameter(paths_to_data,
+                                  parameter,
+                                  class_def=None,
+                                  param_filter=None,
+                                  with_legend=True,
+                                  ax=None):
+    """
+    Scatter plot of the best reward as a function of a single parameter for
+    the datasets in `paths_to_data`.
+
+    Args
+    ----
+    paths_to_data (list of pathlib.Path)
+
+    parameter (str or list of str for nested parameters): abscissa of the plot
+
+    class_def (list): List of keys of the `parameters` dictionary in info.json
+        (or tuples of keys for nested dictionaries) . The list defines how to
+        classify the datasets. Different classes are plotted with different
+        colors and are grouped together.  E.g. class_def = ['n_sites',
+        'n_steps', ('ham_params', 'alpha')]
+
+    param_filter (dictionary): Only dataset with `parameters[key] =
+        param_filter[key]` are considered, for all the keys in param_filter.
+        (`parameters` is a dictionary found in info.json of the dataset)
+        E.g. param_filter = {'subclass': 'WithReplayMemory'}
+
+    with_legend (bool)
+
+    ax (matplotlib.axes.Axes)
+    """
+
+    if ax is None:
+        ax = plt.gca()
+
+    if class_def is None:
+        class_def = []
+    if param_filter is None:
+        param_filter = {}
+
+    indices = []
+    #  final_rewards = []
+    max_rewards = []
+    initial_rewards = []
+    x_values = []
     classes = []
 
     def get_param(param_dict, key):
@@ -190,46 +498,45 @@ def plot_comparison_of_rewards(paths_to_data,
             if get_param(params, p) != value:
                 break
         else:
-            data_indices.append(re.search(r'\d+', path.name).group())
+            p = params[parameter]
+            if p is None:
+                continue
+            x_values.append(p)
+            indices.append(re.search(r'\d+', path.name).group())
             n_episodes = params['n_episodes']
             reward_array = np.load(path / 'rewards.npy')[:, :n_episodes]
-            final_rewards.append(reward_array[:, -1].mean())
+            #  final_rewards.append(reward_array[:, -1].mean())
             max_rewards.append(np.max(reward_array))
             initial_rewards.append(info['initial_reward'])
             classes.append(tuple(get_param(params, p) for p in class_def))
+    classes, indices, max_rewards, initial_rewards, x_values = (
+        zip(*sorted(zip(classes, indices, max_rewards,
+                        initial_rewards, x_values)))
+    )
 
-    df = pd.DataFrame({'index': data_indices,
-                       'final_reward': final_rewards,
-                       'max_reward': max_rewards,
-                       'initial_reward': initial_rewards,
-                       'class': classes}).sort_values(by=['class', 'index'])
-
-    classes = sorted(list(set(classes)))
+    unique_classes = sorted(list(set(classes)))
 
     with plt.style.context(('ggplot')):
         colors = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 2
 
-    colors = sns.color_palette(n_colors=len(classes))
+    colors = sns.color_palette(n_colors=len(unique_classes))
+    c_dict = dict(zip(unique_classes, colors))
+    cs = [c_dict[cl] for cl in classes]
 
-    amounts = [0.45, 1.0]
-    colors_all = [[lighten_color(c, a) for c in colors] for a in amounts]
-    c_dicts = [dict(zip(classes, colors)) for colors in colors_all]
+    ax.scatter(x_values, max_rewards, s=10**2, c=cs, marker='o')
+    ax.scatter(x_values, initial_rewards, s=10**2, c=cs, marker='s')
 
-    x = range(len(df))
-    #  features to plot from bottom to top
-    features = ['initial_reward', 'max_reward']
-    tops = [df[feat].values for feat in features]
-    bottoms = [np.zeros(len(df))] + tops[:-1]
+    ax.set_ylim([0, 1])
+    ax.set_title(f'Rewards as a function of {parameter}',
+                 y=1.08)
 
-    for bottom, top, c_dict in zip(bottoms, tops, c_dicts):
-        ax.bar(x=x, height=top-bottom, bottom=bottom,
-               color=list(map(c_dict.get, df['class'])))
+    ax.set_xlabel(parameter)
+    ax.set_ylabel('reward')
+    if not with_legend:
+        return None
 
-    ax.bar(x=x, height=np.zeros(len(df)), bottom=df['final_reward'],
-           edgecolor='k')
-
-    custom_lines = [Line2D([0], [0], color=c_dicts[1][cl], lw=4)
-                    for cl in classes]
+    custom_handles = [Line2D([0], [0], color=c_dict[cl], marker='o',
+                      linestyle='', markersize=10) for cl in unique_classes]
 
     short_name = {'n_steps': 'steps',
                   'n_sites': 'sites',
@@ -239,63 +546,22 @@ def plot_comparison_of_rewards(paths_to_data,
     class_params = [short_name.get(p[-1], p[-1]) if type(p) == tuple
                     else short_name.get(p, p) for p in class_def]
 
-    labels = [str(', '.join([f'{param}: {value}'
-                             for param, value in zip(class_params, cl)]))
-              for cl in classes]
+    label_format = {float: '{0}: {1:.2f}'}
+    labels = [str(', '.join(
+        [label_format.get(type(value), '{0}: {1}').format(param, value)
+         for param, value in zip(class_params, cl)]
+    )) for cl in unique_classes]
 
-    labels = [l.replace('_', '\_') for l in labels]
-    legend_colors = ax.legend(custom_lines, labels, loc='lower left')
+    legend_colors = ax.legend(custom_handles, labels, loc='lower left')
 
-    labels_reward = ['max reward', 'init. reward', 'final reward (mean)']
-    labels_reward = [l.replace('_', '\_') for l in labels_reward]
-    label_colors = reversed(['k'] +
-                            [lighten_color(colors[0], a) for a in amounts])
-    lws = [10, 10, 1]
-    custom_lines = [Line2D([0], [0], color=c, lw=lw)
-                    for c, lw in zip(label_colors, lws)]
+    labels_reward = ['init. reward', 'max reward']
+    handles = [
+        Line2D([0], [0], color='k', marker='s', linestyle='', markersize=10),
+        Line2D([0], [0], color='k', marker='o', linestyle='', markersize=10)
+    ]
 
-    ax.legend(custom_lines, labels_reward, loc='lower right')
+    ax.legend(handles, labels_reward, loc='lower right')
     ax.add_artist(legend_colors)
-    ax.set_xticks(x)
-    ax.xaxis.set_ticks_position('top')
-    ax.set_xticklabels(df['index'], rotation=90)
-    ax.set_ylim([0, 1])
-    ax.set_title('Comparison of rewards/fidelities accross different runs',
-                 y=1.08)
-
-    #  # label above the bars:
-    #  for x_value, y_value, label in zip(x, df['max_reward'], df['index']):
-    #      # Number of points between bar and label
-    #      space = 5
-    #      # Vertical alignment (for positive values)
-    #      va = 'bottom'
-    #      # Create annotation
-    #      ax.annotate(
-    #          label,
-    #          (x_value, y_value),
-    #          xytext=(0, space),
-    #          textcoords="offset points",
-    #          ha='center',
-    #          va=va)
-
-
-def lighten_color(color, amount=0.5):
-    """
-    Lightens the given color by multiplying (1-luminosity) by the given amount.
-    Input can be matplotlib color string, hex string, or RGB tuple.
-
-    Examples:
-    >> lighten_color('g', 0.3)
-    >> lighten_color('#F034A3', 0.6)
-    >> lighten_color((.3,.55,.1), 0.5)
-    """
-
-    try:
-        c = mc.cnames[color]
-    except Exception:
-        c = color
-    c = colorsys.rgb_to_hls(*mc.to_rgb(c))
-    return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
 
 
 def plot_rewards_vs_extra_episodes(path_to_data,
@@ -389,6 +655,7 @@ def plot_rewards_vs_extra_episodes(path_to_data,
     ax.set_ylabel('reward')
     ax.set_title('Rewards obtained by the agent after being trained')
     ax.legend(loc='lower right')
+    ax.annotate(path_to_data.name, (0.0, 0.05), xycoords='axes fraction')
 
 
 def plot_reward_distribution(path_to_data,
@@ -463,6 +730,7 @@ def plot_reward_distribution(path_to_data,
     ax1.set_title('Distribution of the rewards at given episodes during '
                   'training')
     ax1.legend()
+    ax1.annotate(path_to_data.name, (0.0, 0.95), xycoords='axes fraction')
 
 
 def plot_network_metrics(path_to_data,
@@ -528,6 +796,7 @@ def plot_network_metrics(path_to_data,
     ax.set_title('History of the metrics of the neural network')
     with plt.rc_context({'text.usetex': False}):
         ax.legend()
+    ax.annotate(path_to_data.name, (0.0, 0.95), xycoords='axes fraction')
 
 
 def plot_post_episode_rewards(path_to_data, ax=None):
@@ -577,6 +846,7 @@ def plot_post_episode_rewards(path_to_data, ax=None):
     ax.set_ylim([0, 1.01])
     ax.set_title('Fidelity obtained by repeating the best sequence found '
                  'several times')
+    ax.annotate(path_to_data.name, (0.0, 0.95), xycoords='axes fraction')
 
 
 def plot_q_arrays(path_to_data, n=100, ax=None):
@@ -641,12 +911,13 @@ def plot_info(path_to_data, categories=None, ax=None, print_instead=False):
     n_arrays = info['n_completed_tasks']
     params = info['parameters']
 
-    param_categories = {'main': ['n_sites', 'n_steps',
+    param_categories = {'main': ['n_sites', 'n_steps', 'env_type',
                                  'time_segment', 'system_class'],
                         'ham_params': ['ham_params'],
                         'q_learning': ['n_episodes', 'n_replays',
                                        'replay_spacing', 'exploration'],
-                        'neural_network': ['subclass', 'architecture',
+                        'neural_network': ['network_type', 'subclass',
+                                           'architecture',
                                            'model_update_spacing',
                                            'capacity', 'sampling_size'],
                         'max_q_optimizer': ['max_q_optimizer']}

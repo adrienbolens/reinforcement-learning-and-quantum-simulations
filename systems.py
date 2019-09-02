@@ -2,7 +2,7 @@ import numpy as np
 #  import math
 #  from scipy.linalg import expm
 from scipy import sparse
-from scipy.sparse.linalg import expm
+from scipy.sparse.linalg import expm, eigsh
 from math import sqrt, pi
 #  import time
 
@@ -273,6 +273,22 @@ class SpinSystem(System):
             return compare(state1, state2)
         else:
             return compare(self.state, state1)
+
+    def get_mean_energy(self, state=None):
+        if state is None:
+            state = self.state
+        return (np.vdot(state, self.hamiltonian @ state)).real
+
+    def ground_state_energy(self):
+        """Return the ground state energy"""
+        # 'SA': smallest algebraic eigenvalues
+        print('Calculating ground-state energy for Hamiltonian of shape ',
+              self.hamiltonian.shape)
+        eigenvalues = eigsh(self.hamiltonian,
+                            k=1,
+                            return_eigenvectors=False,
+                            which='SA')
+        return eigenvalues[0]
 
 
 class LongRangeIsing(SpinSystem):

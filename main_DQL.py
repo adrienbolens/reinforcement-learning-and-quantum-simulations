@@ -39,7 +39,9 @@ else:
                               'parameters.py not recognized.')
 
 initial_action_sequence = q_learning.env.initial_action_sequence()
-initial_reward = q_learning.env.reward(initial_action_sequence)
+initial_reward = q_learning.env.reward(action_sequence=initial_action_sequence)
+
+ground_state_energy = q_learning.env.system.ground_state_energy()
 
 rewards = q_learning.run()
 
@@ -75,14 +77,16 @@ if create_output_files:
     try:
         with open('rewards.npy', 'wb') as f:
             np.save(f, rewards)
-    except Exception:
+    except Exception as e:
         print('`rewards.npy` could not be saved.')
+        print('--->', e)
 
     info_dic = {
         #  'parameters': parameters,
         'initial_reward': initial_reward,
+        'ground_state_energy': ground_state_energy,
         'final_reward': rewards[-1],
-        'best_reward': q_learning.best_encountered_reward,
+        'best_reward': q_learning.best_encountered_rewards,
         'total_time': end_time - start_time
         }
     #  print("Compare 'best_encountered_reward' = "

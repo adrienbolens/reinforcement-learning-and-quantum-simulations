@@ -23,14 +23,23 @@ class DeepQLearning(object):
                  replay_spacing,
                  model_update_spacing,
                  system_class,
+                 network_type,
+                 env_type,
                  exploration='uniform',
                  n_extra_episodes=0,
                  verify_argmax_q=False,
                  seed=None,
                  **other_params):
 
-        self.env = envs.ContinuousCurrentGateEnv(system_class=system_class,
-                                                 **other_params)
+        self.env_type = env_type
+        if env_type == 'DynamicalEvolution':
+            self.env = envs.ContinuousCurrentGateEnv(system_class=system_class,
+                                                     **other_params)
+        elif env_type == 'EnergyMinimizer':
+            self.env = envs.ContinuousCurrentStateEnergyEigensolver(
+                system_class=system_class, **other_params
+            )
+
         self.system_class = system_class
         self.n_episodes = n_episodes
         self.exploration = exploration
@@ -47,9 +56,15 @@ class DeepQLearning(object):
         #  n_action_inputs = 1 + self.env.n_directions *
         #  self.env.system.n_sites
 
-        self.model = models.DeepQNetwork(env=self.env,
-                                         tf_seed=seed,
-                                         **other_params)
+        self.network_type = network_type
+        if network_type == 'LSTM':
+            self.model = models.LSTMQNetwork(env=self.env,
+                                             tf_seed=seed,
+                                             **other_params)
+        if network_type == 'Dense':
+            self.model = models.DenseQNetwork(env=self.env,
+                                              tf_seed=seed,
+                                              **other_params)
 
         self.epsilon = epsilon_max
         self.epsilon_min = epsilon_min
@@ -62,7 +77,8 @@ class DeepQLearning(object):
         random.seed(seed)
         np.random.seed(seed)
         self.best_encountered_actions = None
-        self.best_encountered_reward = None
+        #  self.best_encountered_reward = None
+        self.best_encountered_rewards = None
         self.n_extra_episodes = n_extra_episodes
         print(f'Instance of {type(self).__name__} initialized with '
               f'the following attributes (showing only str, int and float):')
@@ -71,12 +87,22 @@ class DeepQLearning(object):
                 print(f'{attribute} = {value}')
 
     def run(self):
-        rewards = np.zeros(self.n_episodes)
+        rewards = np.zeros((self.n_episodes, self.env.n_steps))
         self.best_encountered_actions = self.env.initial_action_sequence()
-        self.best_encountered_reward = \
-            self.env.reward(self.best_encountered_actions)
-        print('Fidelity of the initial action sequence (e.g. Trotter) is '
-              f'{self.best_encountered_reward}')
+        self.env.reset()
+        if self.env_type == 'DynamicalEvolution':
+            self.best_encountered_rewards = (
+                [0]*(len(self.best_encountered_actions) - 1)
+                + [self.env.reward(self.best_encountered_actions)]
+            )
+        elif self.env_type == 'EnergyMinimizer':
+            self.best_encountered_rewards = (
+                [self.env.reward(action=a)
+                 for a in self.best_encountered_actions]
+            )
+        #  self.env.reward(action_sequence=self.best_encountered_actions)
+        print('Final reward of the initial action sequence (e.g. Trotter) is '
+              f'{self.best_encountered_rewards[-1]}')
         for episode in range(self.n_episodes):
 
             if episode % self.model_update_spacing == 0:
@@ -91,11 +117,11 @@ class DeepQLearning(object):
             if self.verify_argmax_q and episode % self.storage_spacing == 0:
                 mode = 'explore_and_store'
 
-            reward = self.run_episode(verbose, mode=mode)
-            if reward > self.best_encountered_reward:
-                self.best_encountered_reward = reward
+            reward_sequence = self.run_episode(verbose, mode=mode)
+            if reward_sequence[-1] > self.best_encountered_rewards[-1]:
+                self.best_encountered_rewards = reward_sequence
                 self.best_encountered_actions = self.env.action_sequence
-            rewards[episode] = reward
+            rewards[episode, :] = reward_sequence
 
             if episode % self.replay_spacing == 0 \
                     and episode < self.n_episodes - 1:
@@ -109,25 +135,26 @@ class DeepQLearning(object):
 
         print(f"Final epsilon: {self.epsilon:.2f}.\n")
         self.env.render()
-        print(f'\nFidelity of run with final Q: {reward:.4f}')
-        print(f'\nBest encountered fidelity: '
-              f'{self.best_encountered_reward:.4f}')
+        print(f'\nRewards of run with final Q: ',
+              [f'{r:.4f}' for r in reward_sequence])
+        print(f'\nBest encountered rewards (i.e. with best final reward): ',
+              [f'{r:.4f}' for r in self.best_encountered_rewards])
 
         if self.n_extra_episodes == 0:
             return rewards
 
-        extra_rewards = np.zeros(self.n_extra_episodes)
+        extra_rewards = np.zeros((self.n_extra_episodes, self.env.n_steps))
         n_extra = self.n_extra_episodes//3
         for n in range(n_extra):
-            reward = self.run_episode(mode='greedy', update=True)
-            extra_rewards[n] = reward
+            reward_sequence = self.run_episode(mode='greedy', update=True)
+            extra_rewards[n, :] = reward_sequence
         for n in range(n_extra, 2*n_extra):
-            reward = self.run_episode(mode='explore', update=False)
-            extra_rewards[n] = reward
+            reward_sequence = self.run_episode(mode='explore', update=False)
+            extra_rewards[n, :] = reward_sequence
         for n in range(2*n_extra, self.n_extra_episodes):
-            reward = self.run_episode(mode='greedy', update=False)
-            extra_rewards[n] = reward
-        return np.append(rewards, extra_rewards)
+            reward_sequence = self.run_episode(mode='greedy', update=False)
+            extra_rewards[n, :] = reward_sequence
+        return np.append(rewards, extra_rewards, axis=0)
 
     def replay_best_episode(self):
         for _ in range(self.n_replays):
@@ -141,15 +168,15 @@ class DeepQLearning(object):
         if mode == 'replay':
             action = self.best_encountered_actions[step]
         elif mode == 'greedy':
-            action, q = self.model.get_best_action(self.env.s)
+            action, q = self.model.get_best_action(self.env.s, step)
         elif mode == 'explore' or mode == 'explore_and_store':
             if self.exploration == 'uniform':
                 if np.random.rand() > self.epsilon:
-                    action, q = self.get_best_action(self.env.s)
+                    action, q = self.get_best_action(self.env.s, step)
                 else:
                     action, q = self.env.random_action(), np.nan
             elif self.exploration == 'gaussian':
-                action, q = self.model.get_best_action(self.env.s)
+                action, q = self.model.get_best_action(self.env.s, step)
                 # add gaussian fluctuation with std = 0.5*ε
                 # (ε = 1 -> 2σ = 1 -> 95% inside [-1, 1])
                 action += self.epsilon * 0.5 * np.random.randn(*action.shape)
@@ -169,29 +196,36 @@ class DeepQLearning(object):
     def save_best_encountered_actions(self, filename):
         try:
             with open(filename, 'w') as f:
-                f.write(f'Corresponding reward = '
-                        f'{self.best_encountered_reward:.4f}.\n\n\n')
+                f.write('Corresponding reward = [')
+                for a in self.best_encountered_rewards:
+                    f.write(f' {a:.4f} ')
+                f.write('] \n\n\n')
                 self.env.render(f, self.best_encountered_actions)
-        except Exception:
+        except Exception as e:
             print(f'`{filename}` could not be saved.')
+            print('--> ', e)
 
     def save_post_episode_rewards(self, filename, n_rewards,
                                   action_sequence=None):
+        if self.env_type != 'DynamicalEvolution':
+            return
         try:
             if action_sequence is None:
                 action_sequence = self.best_encountered_actions
             r1, r2 = self.env.reward(action_sequence, n_rewards)
             with open(filename, 'wb') as f:
                 np.save(f, np.array([r1, r2]))
-        except Exception:
+        except Exception as e:
             print(f'`{filename}` could not be saved.')
+            print('--> ', e)
 
     def save_weights(self, filename):
         try:
             with open(filename, 'wb') as f:
                 np.save(f, self.model.current_weights)
-        except Exception:
+        except Exception as e:
             print(f'`{filename}` could not be saved.')
+            print('--> ', e)
 
     def save_lists_q_max(self, filename1, filename2=None):
         if not self.verify_argmax_q:
@@ -206,8 +240,9 @@ class DeepQLearning(object):
             with open(filename2, 'wb') as f:
                 np.save(f,
                         np.array(list(zip(*self.list_q_discretized_actions))))
-        except Exception:
+        except Exception as e:
             print(f'Could not save `{filename1}`')
+            print('--> ', e)
 
 
 class DeepQLearningWithTraces(DeepQLearning):
@@ -232,7 +267,8 @@ class DeepQLearningWithTraces(DeepQLearning):
             learning_rate = self.learning_rate
             calculate_reward = True
         done = False
-        total_reward, reward = 0, 0
+        #  total_reward, reward = 0, 0
+        reward_sequence = []
         self.env.reset()
         self.trace *= 0.0
         step = 0
@@ -244,7 +280,8 @@ class DeepQLearningWithTraces(DeepQLearning):
                                                         calculate_reward)
             if done and mode == 'replay':
                 reward = self.best_encountered_reward
-            total_reward += reward
+            reward_sequence.append(reward)
+            #  total_reward += reward
             if not update:
                 step += 1
                 continue
@@ -268,8 +305,8 @@ class DeepQLearningWithTraces(DeepQLearning):
                 self.trace *= self.trace_decay_rate
                 step += 1
         if verbose:
-            print(f'\n----------Total Reward: {total_reward:.2f}')
-        return total_reward
+            print(f'\n----------Final Reward: {reward_sequence[-1]:.2f}')
+        return reward_sequence
 
     def choose_action(self, mode, step=0):
         if self.exploration != "uniform":
@@ -312,7 +349,7 @@ class DQLWithReplayMemory(DeepQLearning):
         #  metrics=['accuracy']
         self.memory = models.ReplayMemory(capacity)
         self.sampling_size = sampling_size
-        self.batch_size = sampling_size * self.env.n_steps
+        #  self.batch_size = sampling_size * self.env.n_steps
 
     def run_episode(self, verbose=False, mode='explore', update=True):
         if mode == 'replay':
@@ -320,29 +357,43 @@ class DQLWithReplayMemory(DeepQLearning):
         else:
             calculate_reward = True
         done = False
-        total_reward, reward = 0, 0
+        #  total_reward, reward = 0, 0
         q_target_sequence = []
-        state_sequence = []
+        #  state_sequence = []
         self.env.reset()
         step = 0
+        if self.network_type == 'LSTM':
+            self.model.reset()
         while not done:
             action = self.choose_action(mode, step)
-            state_sequence.append(self.env.s)
+            if self.network_type == 'LSTM':
+                self.model.update_network_input(self.env.s, action, step)
+            #  state_sequence.append(self.env.s)
             next_state, reward, done, _ = self.env.step(action,
                                                         calculate_reward)
-            if done and mode == 'replay':
-                reward = self.best_encountered_reward
-            total_reward += reward
+            #  if done and mode == 'replay':
+            #  reward = self.best_encountered_reward
+            #  total_reward += reward
+            step += 1
             if not done:
                 q_target_sequence.append(
-                    self.model.get_best_action(next_state, use_target=True)[1]
+                    self.model.get_best_action(next_state,
+                                               step=step,
+                                               use_target=True)[1]
                 )
-            step += 1
+
+        if calculate_reward:
+            reward_sequence = self.env.reward_sequence
+        else:
+            reward_sequence = self.best_encountered_rewards
+
         if verbose:
-            print(f'\n----------Total Reward: {total_reward:.2f}')
+            print(f'\n----------Total Reward: {reward_sequence[-1]:.2f}')
         #  state_sequence = self.env.get_states_from_action_sequence()
-        episode = Episode(self.env.action_sequence, state_sequence,
-                          total_reward, np.array(q_target_sequence))
+        episode = Episode(self.env.action_sequence,
+                          self.env.state_sequence,
+                          reward_sequence,
+                          np.array(q_target_sequence))
         n_pushes = 1
         if mode == 'replay':
             n_pushes = self.n_replays
@@ -351,10 +402,10 @@ class DQLWithReplayMemory(DeepQLearning):
         if update:
             self.model.update(memory=self.memory,
                               sampling_size=self.sampling_size,
-                              batch_size=self.batch_size,
+                              #  batch_size=self.batch_size,
                               epochs=self.n_epochs)
 
-        return total_reward
+        return reward_sequence
 
     def replay_best_episode(self):
         self.run_episode(mode='replay')
@@ -372,5 +423,6 @@ class DQLWithReplayMemory(DeepQLearning):
                 #  np.save(f, history_array)
                 #  np.savetxt(f, history_array, fmt='%.8e', delimiter=',',
                 #             header=','.join(keys))
-        except Exception:
+        except Exception as e:
             print(f'`{filename}` could not be saved.')
+            print('--> ', e)

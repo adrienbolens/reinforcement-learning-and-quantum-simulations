@@ -102,15 +102,19 @@ for entry in database_entries:
             info = json.load(f)
         params = info['parameters']
         with_history = False
+        verify_argmax_q = params.get('verify_argmax_q', False)
         if params.get('subclass', None) == "WithReplayMemory":
             import pandas as pd
             with_history = True
-            df = pd.read_csv(result_dir / array_dirs[0] / 'NN_history.npy')
-            metrics = df.columns
-            n_metrics, len_history = len(metrics), len(df)
+            history_file_path = result_dir / array_dirs[0] / 'NN_history.csv'
+            if history_file_path.is_file():
+                df = pd.read_csv(result_dir / array_dirs[0] / 'NN_history.csv')
+                metrics = df.columns
+                n_metrics, len_history = len(metrics), len(df)
+            else:
+                with_history = False
             #  n_metrics, len_history = (np.load(result_dir / array_dirs[0] /
             #                                    'NN_history.npy').shape)
-
         if params['system_class'] == 'LongRangeIsing':
             with open(result_dir / array_dirs[0] / 'results_info.json') as f:
                 results_info = json.load(f)
@@ -138,17 +142,18 @@ for entry in database_entries:
                     print("No 'total_time' key in results_info of {a_dir}.")
                 total_hours_average += results_info.get('total_time', -7*86400)
             if with_history:
-                history_df = pd.read_csv(a_path / 'NN_history.npy')
+                history_df = pd.read_csv(a_path / 'NN_history.csv')
                 history_array[:, i, :] = history_df.values.T
                 #  history_array[:, i, :] = np.load(a_path / 'NN_history.npy')
-            #  q_chosen_array = (
-            #      np.append(q_chosen_array,
-            #                np.load(a_path / 'list_q_max_chosen.npy'))
-            #  )
-            #  q_disc_max, q_disc_min = np.load(a_path /
-            #                                   'list_q_max_discretized.npy')
-            #  q_disc_max_array = np.append(q_disc_max_array, q_disc_max)
-            #  q_disc_min_array = np.append(q_disc_min_array, q_disc_min)
+            if verify_argmax_q:
+                q_chosen_array = (
+                    np.append(q_chosen_array,
+                              np.load(a_path / 'list_q_max_chosen.npy'))
+                )
+                q_disc_max, q_disc_min = np.load(a_path /
+                                                 'list_q_max_discretized.npy')
+                q_disc_max_array = np.append(q_disc_max_array, q_disc_max)
+                q_disc_min_array = np.append(q_disc_min_array, q_disc_min)
         total_hours_average /= n_arrays * 3600
 
         with open(result_dir / 'rewards.npy', 'wb') as f:
@@ -158,9 +163,10 @@ for entry in database_entries:
             with open(result_dir / 'NN_histories.npy', 'wb') as f:
                 np.save(f, history_array)
 
-        #  with open(result_dir / 'q_arrays_comparison.npy', 'wb') as f:
-        #      np.save(f, np.stack([q_chosen_array, q_disc_max_array,
-        #                           q_disc_min_array]))
+        if verify_argmax_q:
+            with open(result_dir / 'q_arrays_comparison.npy', 'wb') as f:
+                np.save(f, np.stack([q_chosen_array, q_disc_max_array,
+                                    q_disc_min_array]))
 
         max_final_reward = np.max(reward_array[:, -1])
         max_final_array = np.argmax(reward_array[:, -1])
@@ -209,6 +215,15 @@ for entry in database_entries:
 
         status = 'processed'
 
+        info['n_completed_tasks'] = n_arrays
+        info['total_hours_average'] = total_hours_average
+        if with_history:
+            info['NN_metrics'] = list(metrics)
+
+        with (result_dir / "info.json").open('w') as f:
+            json.dump(info, f, indent=2)
+        print("info.json written.")
+
         answer = None
         while answer not in ("yes", "no", "yes all"):
             if not yes_all:
@@ -219,26 +234,16 @@ for entry in database_entries:
             if answer == "yes" or yes_all:
                 if yes_all:
                     print('---> yes all')
+                    answer = "yes all"
                 run('rm -r ' + str(result_dir / 'array-*'), shell=True)
                 run('rm ' + str(result_dir / 'slurm-*.out'), shell=True)
                 run(['rm', result_dir / 'job_script_slurm.sh'])
-                run('rm' + str(result_dir / '*.py'), shell=True)
+                run('rm ' + str(result_dir / '*.py'), shell=True)
                 raw_files_exist = False
             elif answer == "no":
                 raw_files_exist = True
-                pass
             else:
                 print("Please enter 'yes', 'no', or 'yes all'.")
-
-        info['n_completed_tasks'] = n_arrays
-        info['total_hours_average'] = total_hours_average
-        if with_history:
-            info['NN_metrics'] = list(metrics)
-
-        with (result_dir / "info.json").open('w') as f:
-            json.dump(info, f, indent=2)
-        print("info.json written.")
-        status = 'processed'
 
     entry['raw_files_exist'] = raw_files_exist
     entry['status'] = status

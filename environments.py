@@ -53,6 +53,7 @@ class QuantumEnv:
                  initial_state,
                  n_directions,
                  seed_initial_state=None,
+                 initiate_target_state=True,
                  **other_params):
 
         # self.system defined in subclass, as they have different
@@ -62,15 +63,20 @@ class QuantumEnv:
         self.time_segment = time_segment
         self.unitary_evolution = \
             expm(-1j * self.time_segment * self.system.hamiltonian)
-        self.set_initial_state(seed_initial_state, initial_state)
+
+        self.set_initial_state(seed_initial_state,
+                               initial_state,
+                               initiate_target_state)
 
         # use single-qubit gates in one (z-only) or two (z and x) directions
         self.n_directions = n_directions
         self.action_sequence = None
+        self.state_sequence = None
         self.lastaction = None
         self.s = None
 
-    def set_initial_state(self, seed=None, initial_state='ferro'):
+    def set_initial_state(self, seed=None, initial_state='ferro',
+                          initiate_target_state=True):
         if initial_state is None:
             pass
         elif initial_state == 'random_product_state':
@@ -86,9 +92,12 @@ class QuantumEnv:
         else:
             raise ValueError(f'Initial state of type {initial_state} '
                              'not implemented.')
+
         self.initial_state = self.system.state
         #  print(f'The initial state is {self.initial_state}')
-        self.target_state = self.system.evolve(unitary=self.unitary_evolution)
+        if initiate_target_state:
+            self.target_state = \
+                self.system.evolve(unitary=self.unitary_evolution)
 
     def get_gate_sequence(self, action_sequence=None):
         if action_sequence is None:
@@ -108,6 +117,10 @@ class QuantumEnv:
         if self.action_sequence is None:
             raise NotImplementedError('action_sequence not initialized'
                                       'reset() should have been called.')
+        if self.state_sequence is None:
+            raise NotImplementedError('state_sequence not initialized'
+                                      'reset() should have been called.')
+        self.state_sequence.append(self.s)
         self.action_sequence.append(a)
         next_state, done = self.get_transition(self.s, a)
         self.s = next_state
@@ -117,6 +130,8 @@ class QuantumEnv:
         else:
             #  reward = 0.0 if a == 0 else -0.001
             reward = 0.0
+        if calculate_reward:
+            self.reward_sequence.append(reward)
         return (next_state, reward, done, {})
 
     def get_transition(self, state, action):
@@ -129,12 +144,17 @@ class QuantumEnv:
         raise NotImplementedError
 
     def reward(self, action_sequence=None, n_rewards=None):
-        # evolve the system.state from the initial_state using action_sequence
-        # Compare it with target_state of the exact evolution
-        # if n_rewards > 1, repeat n_rewards times
-        # and give two sets of rewards: comparing with
-        #    - target_state evolved from initial_state
-        #    - target_state evolved starting from last state of previous step
+        """
+        Does the following:
+            - Evolve `system.state` from the `initial_state` using
+            `action_sequence`
+            - Compare it with `target_state` of the exact evolution
+
+        if n_rewards > 1, repeat n_rewards times
+        and give two sets of rewards: comparing with
+          - target_state evolved from initial_state
+          - target_state evolved starting from last state of previous step
+        """
 
         if action_sequence is None:
             action_sequence = self.action_sequence
@@ -191,6 +211,7 @@ class DiscreteQuantumEnv(QuantumEnv):
                  transmat_in_memory=False,
                  **other_params):
 
+        self.system_class = system_class
         if system_class == 'SpSm':
             self.system = sy.SpSm(store_gates=True, **other_params)
         elif system_class == 'LongRangeIsing':
@@ -225,7 +246,7 @@ class DiscreteQuantumEnv(QuantumEnv):
         self.K = np.linspace(-2 * Jt / self.n_steps, 2 * Jt / self.n_steps,
                              self.n_allqubit_actions, endpoint=True)
 
-        if type(self.system).__name__ == 'LongRangeIsing':
+        if self.system_class == 'LongRangeIsing':
             if self.n_oqbgate_parameters % 2 == 0:
                 warnings.warn('The single-bit identity gate is not available.')
             ht = self.time_segment * self.system.ham_params['h']
@@ -241,6 +262,8 @@ class DiscreteQuantumEnv(QuantumEnv):
     def reset(self):
         self.s = 0
         self.action_sequence = []
+        self.state_sequence = []
+        self.reward_sequence = []
         self.lastaction = None
         return self.s
 
@@ -251,7 +274,7 @@ class DiscreteQuantumEnv(QuantumEnv):
             return self.get_nextstate(state, action)
 
     def initial_action_sequence(self, inplace=False):
-        if type(self.system).__name__ == 'LongRangeIsing':
+        if self.system_class == 'LongRangeIsing':
             # K[i] = Jt/n_steps with K = [-2Jt/n_steps, ..., 2Jt/n_steps]
             # -> i = 3/4 * (n_allqubit_actions - 1)
             # delta[i] = gt/n_steps with delta = [0, ..., (n_one-1)2pi/n_one]
@@ -517,6 +540,7 @@ class ContinuousQuantumEnv(QuantumEnv):
                  range_all=None,
                  **other_params):
 
+        self.system_class = system_class
         if system_class == 'SpSm':
             self.system = sy.SpSm(store_gates=False, **other_params)
         elif system_class == 'LongRangeIsing':
@@ -549,7 +573,7 @@ class ContinuousQuantumEnv(QuantumEnv):
         #  all pointing to same memory
         #  gate = e^(-i * a * ham)
 
-        if type(self.system).__name__ == 'LongRangeIsing':
+        if self.system_class == 'LongRangeIsing':
             if self.n_directions == 2:
                 a_all = self.system.ham_params['J'] * self.time_segment \
                     / self.n_steps / self.range_all
@@ -570,7 +594,7 @@ class ContinuousQuantumEnv(QuantumEnv):
                                                   self.action_len))
 
     def decode_action(self, action):
-        #  Given [..., ai, ...], return list of gates [, ... Gi, ...]
+        """ Given [..., ai, ...], return list of gates [, ... Gi, ...]"""
         list_gates = []
         n = self.system.n_sites
         list_gates.append(self.decode_allqubit_gate(action[0]))
@@ -583,7 +607,7 @@ class ContinuousQuantumEnv(QuantumEnv):
         return list_gates
 
     def decode_onequbit_gate(self, site, a, kind):
-        #  given -1< a< 1, return the gate
+        """ Given -1 < a < 1, return the gate"""
         a_scaled = a * self.range_one
         return self.system.onequbit_gate(site, a_scaled, kind)
 
@@ -604,12 +628,17 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
     the initial state before any action is (-1, [0, 0, ..., 0])
     """
 
-    def reset(self, inplace=True):
-        s0 = (-1, np.zeros(self.action_len))
-        if inplace:
-            self.s = s0
-            self.action_sequence = []
-            self.lastaction = None
+    def get_initial_state(self):
+        return (-1, np.zeros(self.action_len))
+
+    def reset(self):
+        s0 = self.get_initial_state()
+        self.s = s0
+        self.action_sequence = []
+        self.state_sequence = []
+        self.reward_sequence = []
+        self.lastaction = None
+        self.system.state = self.initial_state
         return s0
         #  return self.process_state(self.s)
 
@@ -644,16 +673,20 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
         else:
             # here, step from -1 to n_steps - 2
             one_hot_step[step + 1] = 1.0
-        NNinput = np.concatenate(
+        network_input = np.concatenate(
             (one_hot_step, np.array(current_action, dtype=np.float32),
              np.array(action, dtype=np.float32))
         )
         if reshape:
-            return NNinput.reshape(1, -1)
+            return network_input.reshape(1, -1)
         else:
-            return NNinput
+            return network_input
 
     def process_action(self, processed_sa, action):
+        """
+        Change the input corresponding to the action of an already
+        processed 'state-action' network input
+        """
         processed_sa[0, self.n_steps + self.action_len:] = action
         return processed_sa
 
@@ -662,16 +695,102 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
         #  states = np.insert(list(enumerate(action_sequence[:-1])), 0,
         #                     (-1, [0] * self.action_len))
 
-        NNinput = np.zeros((self.n_steps, 2*self.action_len + self.n_steps))
+        n_inputs = self.get_n_inputs()
+        network_input = np.zeros((self.n_steps, n_inputs))
         for i, s, a in zip(range(len(actions)), states, actions):
-            NNinput[i, :] = self.process_state_action(a, s, reshape=False)
-        return NNinput
+            network_input[i, :] = self.process_state_action(a, s,
+                                                            reshape=False)
+        return network_input
 
     def get_states_from_action_sequence(self, action_sequence=None):
         if action_sequence is None:
             action_sequence = self.action_sequence
         return np.insert(list(enumerate(action_sequence[:-1])), 0,
                          (-1, [0] * self.action_len))
+
+    #  def pad_list_of_inputs(self, inputs):
+    #      """
+    #      Add trivial inputs to the list `inputs` until it has length
+    #      `self.n_steps`.
+    #      This is useful for LSTM networks, which require the full sequence of
+    #      individual inputs (i.e. all steps in the episodes).
+    #      """
+    #      for i in range(self.n_steps - len(inputs)):
+    #          inputs.append(np.zeros(
+
+
+class ContinuousCurrentStateEnergyEigensolver(ContinuousCurrentGateEnv):
+
+    def __init__(self, **other_params):
+        super().__init__(initiate_target_state=False,
+                         **other_params)
+
+    def reset(self):
+        s0 = self.get_initial_state()
+        self.s = s0
+        self.action_sequence = []
+        self.state_sequence = []
+        self.reward_sequence = []
+        self.lastaction = None
+        self.system.state = self.initial_state
+        return s0
+
+    def reward(self,
+               action_sequence=None,
+               action=None,
+               from_initial_state=False):
+        """
+        Does the following:
+            - Evolve `system.state` from the `initial_state` using
+            `action_sequence`.
+            - calculate the energy of the final state
+        """
+
+        # not really needed: system.sate is reset in reset()
+        if from_initial_state:
+            self.system.state = self.initial_state
+
+        if action is not None and action_sequence is not None:
+            raise ValueError
+
+        if action is not None:
+            gates = self.decode_action(action)
+            self.system.apply_gates(gates, inplace=True)
+            return -self.system.get_mean_energy()
+
+        if action_sequence is None:
+            action_sequence = self.action_sequence
+        self.system.state = self.initial_state
+        sets_of_gates = [self.decode_action(a) for a in action_sequence]
+
+        for gates in sets_of_gates:
+            self.system.apply_gates(gates, inplace=True)
+        return -self.system.get_mean_energy()
+
+    def step(self, a, calculate_reward=True):
+        if self.action_sequence is None:
+            raise NotImplementedError('action_sequence not initialized'
+                                      'reset() should have been called.')
+        if self.state_sequence is None:
+            raise NotImplementedError('state_sequence not initialized'
+                                      'reset() should have been called.')
+        if self.reward_sequence is None:
+            raise NotImplementedError('reward_sequence not initialized'
+                                      'reset() should have been called.')
+        self.state_sequence.append(self.s)
+        self.action_sequence.append(a)
+        next_state, done = self.get_transition(self.s, a)
+        self.s = next_state
+        self.lastaction = a
+        if calculate_reward:
+            reward = self.reward(action=a)
+            self.reward_sequence.append(reward)
+        else:
+            reward = 0.0
+        return (next_state, reward, done, {})
+
+    def initial_action_sequence(self):
+        return np.random.uniform(-1, 1, size=(self.n_steps, self.action_len))
 
 
 class Discrete(object):
