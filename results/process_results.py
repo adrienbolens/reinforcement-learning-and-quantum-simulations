@@ -48,11 +48,12 @@ for entry in database_entries:
         d.name[6:].isdigit()
     ]
 
-    for d in array_dirs:
-        if not (result_dir / d / 'rewards.npy').is_file():
-            print(f'Deleting {d}.')
-            run(['rm', '-r', result_dir / d])
-            array_dirs.remove(d)
+    #  for d in array_dirs:
+    #      if (status == 'to_be_processed' and
+    #              not (result_dir / d / 'rewards.npy').is_file()):
+    #          print(f'Deleting {d}.')
+    #          run(['rm', '-r', result_dir / d])
+    #          array_dirs.remove(d)
 
     n_arrays = len(array_dirs)
     entry['n_completed_tasks'] = n_arrays
@@ -135,7 +136,7 @@ for entry in database_entries:
 
         for i, a_dir in enumerate(array_dirs):
             a_path = result_dir / a_dir
-            reward_array[i, :] = np.load(a_path / 'rewards.npy')
+            reward_array[i, :] = np.load(a_path / 'rewards.npy')[:, -1]
             with open(result_dir / a_dir / 'results_info.json') as f:
                 results_info = json.load(f)
                 if 'total_time' not in results_info.keys():
@@ -207,8 +208,8 @@ for entry in database_entries:
         trotter_reward_file = result_dir / \
             f'{max_array_dir}/post_episode_rewards__trotter.npy'
         run(['cp', best_sequence_file, result_dir])
-        run(['cp', best_reward_file, result_dir])
-        run(['cp', trotter_reward_file, result_dir])
+        #  run(['cp', best_reward_file, result_dir])
+        #  run(['cp', trotter_reward_file, result_dir])
         prof_file = result_dir / array_dirs[0] / 'file.prof'
         if prof_file.is_file():
             run(['cp', prof_file, result_dir])

@@ -85,7 +85,7 @@ if create_output_files:
         #  'parameters': parameters,
         'initial_reward': initial_reward,
         'ground_state_energy': ground_state_energy,
-        'final_reward': rewards[-1],
+        #  'final_reward': rewards[-1],
         'best_reward': q_learning.best_encountered_rewards,
         'total_time': end_time - start_time
         }
@@ -97,5 +97,6 @@ if create_output_files:
         with open('results_info.json', 'w') as f:
             json.dump(info_dic, f, indent=2)
         print("results_info.json written.")
-    except Exception:
+    except Exception as e:
         print('`results_info.json` could not be saved.')
+        print('--->', e)

@@ -84,7 +84,7 @@ def submit_to_slurm(params):
         #  "time": "0:30:00",
         #  "mail-type": "END",
         #  "mem-per-cpu": "50000",
-        "mem-per-cpu": "10000",
+        "mem-per-cpu": "20000",
         #  "mem-per-cpu": "5000",
         #  "mem-per-cpu": "500",
         "o": job_path / "slurm-%a.out"
@@ -172,6 +172,7 @@ def submit_to_slurm(params):
 
 
 if __name__ == '__main__':
+    #  import math
     #  for t in [1.0, 1.25, 1.5, 1.75, 2.0, 5.0, 10.0, 100.0]:
     #      parameters['time_segment'] = t
     #      submit_to_slurm(parameters)
@@ -186,4 +187,14 @@ if __name__ == '__main__':
     #  parameters['time_segment'] = 1.0
     #  submit_to_slurm(parameters)
     #  parameters['time_segment'] = 100.0
+    #  parameters['range_all'] = 1.0
+    #  parameters['range_one'] = math.pi
+    #  submit_to_slurm(parameters)
+
+    parameters['range_all'] = 0.5
+    parameters['range_one'] = 1.0
+    submit_to_slurm(parameters)
+
+    parameters['range_all'] = 0.1
+    parameters['range_one'] = 0.5
     submit_to_slurm(parameters)

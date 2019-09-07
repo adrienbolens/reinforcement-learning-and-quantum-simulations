@@ -5,7 +5,7 @@ pi = math.pi
 
 parameters = {
     'n_sites':  3,
-    'n_steps': 6,
+    'n_steps': 4,
     'time_segment': 1.0,
     'bc': 'open',
     #  'ferro' or 'random'
@@ -31,9 +31,10 @@ parameters = {
     #  'seed_initial_state': 0,
 
     # q_learning parameters:
-    'n_episodes': int(1e5),
+    'n_episodes': int(5e4),
     #  'n_episodes': 10,
-    'learning_rate': 0.618,
+    # not used with deep learning
+    #  'learning_rate': 0.618,
     'epsilon_max': 1.0,
     'epsilon_min': 0.005,
     #  'epsilon_decay': 0.005**(1/0.9e5)
@@ -85,8 +86,10 @@ parameters_deep = {
         'momentum': 0.9,
         'learning_rate': 0.6,
         'n_initial_actions': 15,
+        #  'n_initial_actions': 10,
         # was mistakenly set to 3 up to run 229:
         'n_iterations': 10,
+        #  'n_iterations': 6,
         'convergence_threshold': 0.005,
         'clip_action': False
         #  'clip_action': True
@@ -95,25 +98,27 @@ parameters_deep = {
     #  'network_type': 'LSTM',
     'network_type': 'Dense',
 
-    'env_type': 'EnergyMinimizer',
+    #  'env_type': 'EnergyMinimizer',
     #  'architecture': {'LSTM': [5, 1], 'activation': None},
-    'architecture': [(150, 'tanh'),
-                     (40, 'relu'),
-                     (20, 'relu'),
-                     (1, None)],
-
-    #  'env_type': 'DynamicalEvolution',
-    #  'architecture': {'LSTM': [5, 1], 'activation': 'sigmoid'},
     #  'architecture': [(150, 'tanh'),
     #                   (40, 'relu'),
     #                   (20, 'relu'),
-    #                   (1, 'sigmoid')],
+    #                   (1, None)],
 
-    'capacity': 100,
-    'sampling_size': 100,
+    'env_type': 'DynamicalEvolution',
+    #  'architecture': {'LSTM': [5, 1], 'activation': 'sigmoid'},
+    'architecture': [(150, 'tanh'),
+                     (40, 'relu'),
+                     (20, 'relu'),
+                     (1, 'sigmoid')],
+
+    'capacity': 50,
+    'sampling_size': 50,
     #  'sampling_size': 1,
     'subclass': 'WithReplayMemory',
     #  'NN_optimizer': 'adam',
+    # we use SGD with full batch_size (i.e. GD with no S)
+    # for now, use default lr
     'NN_optimizer': 'SGD',
     'n_epochs': 1,
     'exploration': 'gaussian',
@@ -121,8 +126,8 @@ parameters_deep = {
     #  'range_one': math.pi
     'range_all': 0.5,
     'range_one': 1.0,
-    #  'n_extra_episodes': 3000,
-    'n_extra_episodes': 0,
+    'n_extra_episodes': 3000,
+    #  'n_extra_episodes': 0,
     'verify_argmax_q': False
     #  'verify_argmax_q': True
 }

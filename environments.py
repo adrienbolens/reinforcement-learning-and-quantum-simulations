@@ -719,7 +719,7 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
     #          inputs.append(np.zeros(
 
 
-class ContinuousCurrentStateEnergyEigensolver(ContinuousCurrentGateEnv):
+class ContinuousCurrentStateEnergyMinimizer(ContinuousCurrentGateEnv):
 
     def __init__(self, **other_params):
         super().__init__(initiate_target_state=False,

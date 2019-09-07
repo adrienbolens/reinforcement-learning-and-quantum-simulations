@@ -374,7 +374,9 @@ class DenseQNetwork(DeepQNetwork):
         assert len(train) == batch_size, ('training data was not properly '
                                           'processed')
 
-        self.model.fit(train, labels, epochs=epochs, verbose=0)
+        # batch_size: use average on the whole batch for a single update
+        self.model.fit(train, labels, batch_size=batch_size,
+                       epochs=epochs, verbose=0)
         for key in self.model.history.history:
             if key not in self.history:
                 self.history[key] = []
@@ -619,7 +621,9 @@ class LSTMQNetwork(DeepQNetwork):
         assert len(train) == batch_size, ('training data was not properly '
                                           'processed')
 
-        self.model.fit(train, labels, epochs=epochs, verbose=0)
+        # batch_size: use average on the whole batch for a single update
+        self.model.fit(train, labels, batch_size=batch_size,
+                       epochs=epochs, verbose=0)
         for key in self.model.history.history:
             if key not in self.history:
                 self.history[key] = []

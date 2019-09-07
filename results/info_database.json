@@ -14161,6 +14161,65 @@
       "mean_absolute_error"
     ]
   },
+  "313_deep_q_learning": {
+    "n_submitted_tasks": 200,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 4,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 100000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.9999411315398542,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": true
+      },
+      "network_type": "LSTM",
+      "architecture": [
+        1
+      ],
+      "env_type": "DynamicalEvolution",
+      "capacity": 100,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.5,
+      "range_one": 1.0,
+      "n_extra_episodes": 0,
+      "verify_argmax_q": false
+    },
+    "initial_reward": 0.8907535629776162,
+    "n_completed_tasks": 164,
+    "total_hours_average": 35.059114098697904,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
   "318_deep_q_learning": {
     "n_submitted_tasks": 200,
     "parameters": {
@@ -14273,6 +14332,1560 @@
     "initial_reward": 0.11666159455672653,
     "n_completed_tasks": 178,
     "total_hours_average": 42.248773730389786,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "332_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 50,
+      "sampling_size": 50,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 1.0,
+      "range_one": 3.141592653589793,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": 0.39716882957097005,
+    "n_completed_tasks": 100,
+    "total_hours_average": 17.51398016029133,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "333_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 50,
+      "sampling_size": 50,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.5,
+      "range_one": 1.0,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -0.7319054702595393,
+    "n_completed_tasks": 100,
+    "total_hours_average": 18.98038319308493,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "334_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 50,
+      "sampling_size": 50,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.1,
+      "range_one": 0.5,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -2.51588948000405,
+    "n_completed_tasks": 100,
+    "total_hours_average": 17.97775226785938,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "335_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 5,
+      "replay_spacing": 10,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 50,
+      "sampling_size": 50,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 1.0,
+      "range_one": 3.141592653589793,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": 0.32013365288971907,
+    "n_completed_tasks": 100,
+    "total_hours_average": 17.251545329717796,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "327_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 200,
+      "sampling_size": 200,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.5,
+      "range_one": 1.0,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -0.8592096199671766,
+    "n_completed_tasks": 100,
+    "total_hours_average": 14.58544562626481,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "328_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 200,
+      "sampling_size": 200,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.1,
+      "range_one": 0.5,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": 0.07292467896324134,
+    "n_completed_tasks": 100,
+    "total_hours_average": 11.52779183901482,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "329_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 400,
+      "sampling_size": 200,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 1.0,
+      "range_one": 3.141592653589793,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -5.993950371148518,
+    "n_completed_tasks": 100,
+    "total_hours_average": 15.061332680735322,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "330_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 400,
+      "sampling_size": 200,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.5,
+      "range_one": 1.0,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -2.752534956352152,
+    "n_completed_tasks": 100,
+    "total_hours_average": 16.916688966904083,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "331_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 400,
+      "sampling_size": 200,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.1,
+      "range_one": 0.5,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -1.6278002069180213,
+    "n_completed_tasks": 100,
+    "total_hours_average": 14.653255293983221,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "320_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 100,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 1.0,
+      "range_one": 3.141592653589793,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -0.14759900867498976,
+    "n_completed_tasks": 100,
+    "total_hours_average": 16.63076804381675,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "322_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 100,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.1,
+      "range_one": 0.5,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -2.51588948000405,
+    "n_completed_tasks": 100,
+    "total_hours_average": 14.020123183832565,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "323_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 200,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 1.0,
+      "range_one": 3.141592653589793,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -1.2463458637355385,
+    "n_completed_tasks": 100,
+    "total_hours_average": 17.36036948915455,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "324_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 200,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.5,
+      "range_one": 1.0,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -4.880672828683121,
+    "n_completed_tasks": 100,
+    "total_hours_average": 16.202151603566275,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "326_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 200,
+      "sampling_size": 200,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 1.0,
+      "range_one": 3.141592653589793,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -0.5572838182524442,
+    "n_completed_tasks": 100,
+    "total_hours_average": 16.93818092195458,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "321_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 100,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.5,
+      "range_one": 1.0,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -1.91956828384137,
+    "n_completed_tasks": 100,
+    "total_hours_average": 16.325269849597746,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "325_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 200,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.1,
+      "range_one": 0.5,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -2.400268158338602,
+    "n_completed_tasks": 100,
+    "total_hours_average": 18.483046549644737,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "338_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 50,
+      "replay_spacing": 100,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 100,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 1.0,
+      "range_one": 3.141592653589793,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": 0.44149846091258715,
+    "n_completed_tasks": 100,
+    "total_hours_average": 15.272652354351017,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "339_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 50,
+      "replay_spacing": 100,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 100,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.5,
+      "range_one": 1.0,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": 1.4582677130585133,
+    "n_completed_tasks": 100,
+    "total_hours_average": 15.040018271925051,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "340_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 50,
+      "replay_spacing": 100,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          150,
+          "tanh"
+        ],
+        [
+          40,
+          "relu"
+        ],
+        [
+          20,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 100,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.1,
+      "range_one": 0.5,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -2.4872911185107527,
+    "n_completed_tasks": 100,
+    "total_hours_average": 14.105695846824513,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "341_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          300,
+          "tanh"
+        ],
+        [
+          100,
+          "relu"
+        ],
+        [
+          50,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 100,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 1.0,
+      "range_one": 3.141592653589793,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": 4.791219952986397,
+    "n_completed_tasks": 100,
+    "total_hours_average": 15.364275350007746,
+    "NN_metrics": [
+      "logcosh",
+      "mean_squared_error",
+      "mean_absolute_error"
+    ]
+  },
+  "343_deep_q_learning": {
+    "n_submitted_tasks": 100,
+    "parameters": {
+      "n_sites": 3,
+      "n_steps": 5,
+      "time_segment": 1.0,
+      "bc": "open",
+      "initial_state": "random_product_state",
+      "system_class": "LongRangeIsing",
+      "n_directions": 2,
+      "ham_params": {
+        "J": 1.0,
+        "g": 2.0,
+        "h": 2.0,
+        "alpha": 3.0
+      },
+      "seed_initial_state": 42,
+      "n_episodes": 50000,
+      "learning_rate": 0.618,
+      "epsilon_max": 1.0,
+      "epsilon_min": 0.005,
+      "n_replays": 10,
+      "replay_spacing": 50,
+      "epsilon_decay": 0.999882266545204,
+      "model_update_spacing": 20,
+      "max_q_optimizer": {
+        "algorithm": "NAG",
+        "momentum": 0.9,
+        "learning_rate": 0.6,
+        "n_initial_actions": 15,
+        "n_iterations": 10,
+        "convergence_threshold": 0.005,
+        "clip_action": false
+      },
+      "network_type": "Dense",
+      "env_type": "EnergyMinimizer",
+      "architecture": [
+        [
+          300,
+          "tanh"
+        ],
+        [
+          100,
+          "relu"
+        ],
+        [
+          50,
+          "relu"
+        ],
+        [
+          1,
+          null
+        ]
+      ],
+      "capacity": 100,
+      "sampling_size": 100,
+      "subclass": "WithReplayMemory",
+      "NN_optimizer": "SGD",
+      "n_epochs": 1,
+      "exploration": "gaussian",
+      "range_all": 0.1,
+      "range_one": 0.5,
+      "n_extra_episodes": 3000,
+      "verify_argmax_q": false
+    },
+    "initial_reward": -0.8800296781863515,
+    "n_completed_tasks": 100,
+    "total_hours_average": 19.01925184155901,
     "NN_metrics": [
       "logcosh",
       "mean_squared_error",

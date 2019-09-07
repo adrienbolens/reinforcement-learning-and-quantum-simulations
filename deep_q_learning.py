@@ -36,7 +36,7 @@ class DeepQLearning(object):
             self.env = envs.ContinuousCurrentGateEnv(system_class=system_class,
                                                      **other_params)
         elif env_type == 'EnergyMinimizer':
-            self.env = envs.ContinuousCurrentStateEnergyEigensolver(
+            self.env = envs.ContinuousCurrentStateEnergyMinimizer(
                 system_class=system_class, **other_params
             )
 
