@@ -660,6 +660,25 @@ class ContinuousCurrentGateEnv(ContinuousQuantumEnv):
     def get_action_len(self) -> int:
         return self.action_len
 
+    def process_state(self, state, reshape=True):
+        #  Give a state feedable to the actor NN (i.e. without action)
+        #  one-hote encode the time
+        step, current_action = state
+        one_hot_step = np.zeros(self.n_steps, dtype=np.float32)
+        if step == self.n_steps - 1:
+            # there is no need to calculate the Q function for terminal states.
+            pass
+        else:
+            # here, step from -1 to n_steps - 2
+            one_hot_step[step + 1] = 1.0
+        network_input = np.concatenate(
+            (one_hot_step, np.array(current_action, dtype=np.float32))
+        )
+        if reshape:
+            return network_input.reshape(1, -1)
+        else:
+            return network_input
+
     def process_state_action(self, state, action=None, reshape=True):
         if action is None:
             action = np.zeros(self.action_len)

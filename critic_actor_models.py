@@ -28,21 +28,30 @@ class ActorCriticNetworks:
                  #  architecture,
                  sess,
                  env,
-                 #  capacity,
-                 tf_seed=None,
+                 capacity,
+                 tau,
+                 optimizer,
                  **other_params):
 
         self.env = env
         self.sess = sess
 
-        self.learning_rate = 0.001
+        if optimizer.get('learning_rate') is None:
+            self.learning_rate = 0.001
+        else:
+            self.learning_rate = optimizer['learning']
+
+        if optimizer.get('type') != 'adam':
+            raise RuntimeError('The specified optimizer is not implemented.')
+
         #  self.epsilon = 1.0
         #  self.epsilon_decay = .995
         self.gamma = 1.0
         #  self.gamma = .95
-        self.tau = .125
+        #  self.tau = .125
+        self.tau = tau,
 
-        self.capacity = 2000
+        self.capacity = capacity
 
         # ====================================================================
         # Actor Model
@@ -140,12 +149,12 @@ class ActorCriticNetworks:
     # Model Training
     # ====================================================================
 
-    def remember(self, state, action, reward, new_state, done):
-        self.memory.append([state, action, reward, new_state, done])
+    def remember(self, state, action, reward, next_state, done):
+        self.memory.append([state, action, reward, next_state, done])
 
     def _train_actor(self, samples):
         for sample in samples:
-            state, action, reward, new_state, _ = sample
+            state, action, reward, next_state = sample
             predicted_action = self.actor_model.predict(state)
             critic_grads = self.sess.run(self.critic_grads, feed_dict={
                 self.critic_state_input: state,
@@ -159,21 +168,22 @@ class ActorCriticNetworks:
 
     def _train_critic(self, samples):
         for sample in samples:
-            state, action, reward, new_state, done = sample
+            state, action, reward, next_state, done = sample
             if not done:
-                target_action = self.target_actor_model.predict(new_state)
+                target_action = self.target_actor_model.predict(next_state)
                 future_reward = self.target_critic_model.predict(
-                    [new_state, target_action])[0][0]
+                    [next_state, target_action])[0][0]
                 reward += self.gamma * future_reward
             self.critic_model.fit([state, action], reward, verbose=0)
 
-    def train(self):
-        batch_size = 32
-        if len(self.memory) < batch_size:
+    def train(self, sampling_size):
+        if len(self.memory) < sampling_size:
             return
 
-        #  rewards = []
-        samples = random.sample(self.memory, batch_size)
+        samples = random.sample(self.memory, sampling_size)
+        # flatten the list of list of transition to a list of transition
+        # a transition is a tuple (state, action, reward, next_state)
+        samples = [transition for episode in samples for transition in episode]
         self._train_critic(samples)
         self._train_actor(samples)
 
@@ -205,41 +215,7 @@ class ActorCriticNetworks:
     # Model Predictions
     # ====================================================================
 
-    def act(self, state, std=None):
-        """Choose an action and add Gaussian noise to it"""
+    def act(self, state):
+        """Choose an action using the Actor Neural Netowrk"""
         action = self.actor_model.predict(state)
-        if std is None:
-            return action
-        else:
-            # add gaussian fluctuation with std = 0.5*ε
-            # (ε = 1 -> 2σ = 1 -> 95% inside [-1, 1])
-            action += std * np.random.randn(*action.shape)
-            return action
-
-#  def main():
-#      sess = tf.Session()
-#      K.set_session(sess)
-#      env = gym.make("Pendulum-v0")
-#      actor_critic = ActorCritic(env, sess)
-
-#      num_trials = 10000
-#      trial_len  = 500
-
-#      cur_state = env.reset()
-#      action = env.action_space.sample()
-#      while True:
-#          env.render()
-#          cur_state = cur_state.reshape((1, env.observation_space.shape[0]))
-#          action = actor_critic.act(cur_state)
-#          action = action.reshape((1, env.action_space.shape[0]))
-
-#          new_state, reward, done, _ = env.step(action)
-#          new_state = new_state.reshape((1, env.observation_space.shape[0]))
-
-#          actor_critic.remember(cur_state, action, reward, new_state, done)
-#          actor_critic.train()
-
-#          cur_state = new_state
-
-#  if __name__ == "__main__":
-#      main()
+        return action
