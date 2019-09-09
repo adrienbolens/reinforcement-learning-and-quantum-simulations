@@ -1,6 +1,9 @@
 import numpy as np
 import environments as envs
-from critic_actor_models import ActorCriticNetworks
+import random
+import tensorflow as tf
+import tensorflow.keras.backend as K
+from actor_critic_models import ActorCriticNetworks
 
 
 class DeepDeterministicGradientPolicy(object):
@@ -26,6 +29,7 @@ class DeepDeterministicGradientPolicy(object):
                  sampling_size,
                  exploration='gaussian',
                  n_extra_episodes=0,
+                 seed=None,
                  **other_params):
 
         self.env_type = env_type
@@ -37,6 +41,12 @@ class DeepDeterministicGradientPolicy(object):
                 system_class=system_class, **other_params
             )
 
+        random.seed(seed)
+        np.random.seed(seed)
+        tf.set_random_seed(seed)
+        sess = tf.Session()
+        K.set_session(sess)
+
         self.system_class = system_class
         self.n_episodes = n_episodes
         self.exploration = exploration
@@ -44,6 +54,7 @@ class DeepDeterministicGradientPolicy(object):
         self.network_type = network_type
         if network_type == 'Dense':
             self.actor_critic = ActorCriticNetworks(
+                sess=sess,
                 env=self.env,
                 **other_params
             )
@@ -205,6 +216,11 @@ class DeepDeterministicGradientPolicy(object):
                              'exist.')
         return action
 
+    def get_initial_sequence(self):
+        initial_action_sequence = self.env.initial_action_sequence()
+        reward = self.env.reward(action_sequence=initial_action_sequence)
+        return initial_action_sequence, reward
+
     def save_best_encountered_actions(self, filename):
         try:
             with open(filename, 'w') as f:
@@ -217,35 +233,19 @@ class DeepDeterministicGradientPolicy(object):
             print(f'`{filename}` could not be saved.')
             print('--> ', e)
 
-
-#  def main():
-#      random.seed(seed)
-#      np.random.seed(seed)
-#      tf.set_random_seed(tf_seed)
-
-#      sess = tf.Session()
-#      K.set_session(sess)
-#      env = gym.make("Pendulum-v0")
-#      actor_critic = ActorCritic(env, sess)
-
-#      num_trials = 10000
-#      trial_len  = 500
-
-#      cur_state = env.reset()
-#      action = env.action_space.sample()
-#      while True:
-#          env.render()
-#          cur_state = cur_state.reshape((1, env.observation_space.shape[0]))
-#          action = actor_critic.act(cur_state)
-#          action = action.reshape((1, env.action_space.shape[0]))
-
-#          new_state, reward, done, _ = env.step(action)
-#          new_state = new_state.reshape((1, env.observation_space.shape[0]))
-
-#          actor_critic.remember(cur_state, action, reward, new_state, done)
-#          actor_critic.train()
-
-#          cur_state = new_state
-
-#  if __name__ == "__main__":
-#      main()
+    #  def save_history(self, filename):
+    #      try:
+    #          import pandas as pd
+    #          #  keys = ['loss', 'mean_squared_error', 'mean_absolute_error']
+    #          keys = self.model.history.keys()
+    #          history_df = pd.DataFrame(self.model.history)
+    #          history_df.rename(columns={'loss': self.loss}, inplace=True)
+    #          print('saving history of NN for metrics: ', keys)
+    #          with open(filename, 'w') as f:
+    #              history_df.to_csv(f, index=False)
+    #              #  np.save(f, history_array)
+    #              #  np.savetxt(f, history_array, fmt='%.8e', delimiter=',',
+    #              #             header=','.join(keys))
+    #      except Exception as e:
+    #          print(f'`{filename}` could not be saved.')
+    #          print('--> ', e)

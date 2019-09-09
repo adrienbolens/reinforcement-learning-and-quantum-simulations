@@ -1,6 +1,6 @@
 import numpy as np
 import sys
-import deep_q_learning as dql
+import deep_deterministic_policy_gradient as ddpg
 import json
 from pathlib import Path
 
@@ -12,8 +12,7 @@ if Path('info.json').is_file():
         info = json.load(f)
     parameters = info['parameters']
 else:
-    from parameters import parameters, parameters_deep
-    parameters.update(parameters_deep)
+    from parameters_DDPG import parameters
 
 if len(sys.argv) < 2:
     array_index = 1
@@ -27,48 +26,23 @@ else:
 print(f"Array n. {array_index}")
 seed_qlearning = array_index
 print(f'The seed used for the q_learning algorithm = {seed_qlearning}.')
-#  if parameters['subclass'] == 'WithReplayMemory':
-#      q_learning = dql.DQLWithReplayMemory(
-#          seed=seed_qlearning,
-#          **parameters
-#      )
-else:
-    raise NotImplementedError(f"subclass {parameters['subclass']} in "
-                              'parameters.py not recognized.')
 
-initial_action_sequence = q_learning.env.initial_action_sequence()
-initial_reward = q_learning.env.reward(action_sequence=initial_action_sequence)
+ddpg_learning = ddpg.DeepDeterministicGradientPolicy(**parameters)
 
-ground_state_energy = q_learning.env.system.ground_state_energy()
+initial_action_sequence, initial_reward = ddpg.get_initial_sequence()
 
-rewards = q_learning.run()
+#  ground_state_energy = ddpg.env.system.ground_state_energy()
+
+rewards = ddpg.run()
+
+print(ddpg.actor_critic.actor_model.history)
+print(ddpg.actor_critic.critic_model.history)
 
 if create_output_files:
-    q_learning.save_best_encountered_actions('best_gate_sequence.txt')
-    q_learning.save_weights('final_weights.npy')
-    q_learning.save_lists_q_max('list_q_max.npy')
+    ddpg.save_best_encountered_actions('best_gate_sequence.txt')
+    #  ddpg.save_weights('final_weights.npy')
 
-    n_rewards = 100
-    q_learning.save_post_episode_rewards(
-        'post_episode_rewards__best.npy',
-        n_rewards,
-        q_learning.best_encountered_actions
-    )
-
-    #  q_learning.save_post_episode_rewards(
-    #      'post_episode_rewards__final.npy',
-    #      n_rewards,
-    #      q_learning.env.action_sequence
-    #  )
-
-    if parameters['system_class'] == 'LongRangeIsing':
-        q_learning.save_post_episode_rewards(
-            'post_episode_rewards__trotter.npy',
-            n_rewards,
-            initial_action_sequence
-        )
-    if parameters['subclass'] == 'WithReplayMemory':
-        q_learning.save_history('NN_history.csv')
+    #  ddpg.save_history('NN_history.csv')
 
     end_time = time.time()
 
@@ -80,11 +54,10 @@ if create_output_files:
         print('--->', e)
 
     info_dic = {
-        #  'parameters': parameters,
         'initial_reward': initial_reward,
-        'ground_state_energy': ground_state_energy,
+        #  'ground_state_energy': ground_state_energy,
         #  'final_reward': rewards[-1],
-        'best_reward': q_learning.best_encountered_rewards,
+        'best_reward': ddpg.best_encountered_rewards,
         'total_time': end_time - start_time
         }
     #  print("Compare 'best_encountered_reward' = "
